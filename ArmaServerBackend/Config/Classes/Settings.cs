@@ -3,16 +3,55 @@
 namespace ArmaServerBackend
 {
     public class Settings
-    {  
+    {
+        /// <summary>
+        /// Local directory path where downloaded pbo will be stored
+        /// </summary>
         public string GitDirectory { get; set; }
+        
+        /// <summary>
+        /// BasicSetting for arma3server 
+        /// </summary>
         public ServerBasicSettings BasicSetting { get; set; }
+        
+        /// <summary>
+        /// serverSettings for arma3server 
+        /// </summary>
         public ServerSettings serverSettings { get; set; }
-        public List<PboFiles> Pbos { get; set; }
+        
+        /// <summary>
+        /// List of PBOS
+        /// </summary>
+        public List<PBOFile> Pbos { get; set; }
+        
+        /// <summary>
+        /// Script FunctionsTag used when randomizing functions
+        /// </summary>
         public string FunctionsTag { get; set; }
+        
+        /// <summary>
+        /// List of functions to randomize
+        /// </summary>
         public List<string> Functions { get; set; }
+        
+        /// <summary>
+        /// List of global variables to randomize
+        /// </summary>
         public List<string> GlobalVariables { get; set; }
+        
+        /// <summary>
+        /// List of loacl variables to randomize
+        /// </summary>
         public List<string> LocalVaribales { get; set; }
+        
+        /// <summary>
+        /// Length of random function to create
+        /// </summary>
         public int RandomFunctionsLength { get; set; }
+        
+        /// <summary>
+        /// Length of random variables to create
+        /// </summary>
         public int RandomVariablesLength { get; set; }
     }
     public class SettingsDefault
@@ -23,7 +62,7 @@ namespace ArmaServerBackend
             GitDirectory = @"C:\Github",
             BasicSetting = new ServerBasicSettingDefault().Values(),
             serverSettings = new ServerSettingsDefault().Values(serverDirectory,"Some Mission Name", missionName),
-            Pbos = new List<PboFiles>() {
+            Pbos = new List<PBOFile>() {
                 new PboFilesDefault().Values(missionName, $"{serverDirectory}\\mpmissions", PboModType.Mission),
                 //new PboFilesDefault().Values("client_functions", $"{serverDirectory}\\addons", PboModType.ClientMod),
                 //new PboFilesDefault().Values("server_functions", $"{serverDirectory}\\addons", PboModType.ServerMod)

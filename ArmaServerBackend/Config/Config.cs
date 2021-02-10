@@ -69,12 +69,12 @@ namespace ArmaServerBackend
             }
             return motd;
         }
-        private string GetMissions(List<PboFiles> pboFiles)
+        private string GetMissions(List<PBOFile> pboFiles)
         {
             var missionString = "";
             var index = 0;
 
-            foreach (PboFiles pbo in pboFiles)
+            foreach (PBOFile pbo in pboFiles)
             {
                 if (pbo.ModType != PboModType.Mission) continue;//Not mission mod
                 if (!pbo.IsEnabled) continue;
@@ -92,10 +92,10 @@ namespace ArmaServerBackend
             }
             return missionString;
         }
-        internal string GetMods(List<PboFiles> pboFiles, PboModType pboModType)
+        internal string GetMods(List<PBOFile> pboFiles, PboModType pboModType)
         {
             var modString = "";
-            foreach (PboFiles pbo in pboFiles)
+            foreach (PBOFile pbo in pboFiles)
             {
                 if (pbo.ModType != pboModType) continue;//Not server mod
                 if (!pbo.IsEnabled) continue;
@@ -254,7 +254,7 @@ namespace ArmaServerBackend
         { 
             if (config != 0 && config != 1) return "";
             var path = Path.Combine(settings.serverSettings.ServerDirectory, "A3Config");
-            var file = Path.Combine(path, (config == 0) ? "ArmaServerBasic.cfg" : "ArmaServerServer.cfg");
+            var file = Path.Combine(path, (config == 0) ? "ArmaBasic.cfg" : "ArmaServer.cfg");
             return File.Exists(file) ? file : "";
         }
 
@@ -263,7 +263,7 @@ namespace ArmaServerBackend
         {
             if (config != 0 && config != 1) return false;
             var path = Path.Combine(settings.serverSettings.ServerDirectory, "A3Config");
-            var file = Path.Combine(path, (config == 0) ? "ArmaServerBasic.cfg" : "ArmaServerServer.cfg");
+            var file = Path.Combine(path, (config == 0) ? "ArmaBasic.cfg" : "ArmaServer.cfg");
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
             if(config == 0) WriteBasicConfigFile(file, settings.BasicSetting); else WriteServerConfigFile(file, settings);
             Thread.Sleep(2000);

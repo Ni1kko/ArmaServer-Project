@@ -12,9 +12,8 @@ namespace ArmaServerFrontend
     {
         private static Form thisForm;
         private bool preloaded = false;
-        private bool isOnline = false;
         private int lastSelectedPbo = 0;
-        private Dictionary<int, PboFiles> pboList = new Dictionary<int, PboFiles>();
+        private Dictionary<int, PBOFile> pboList = new Dictionary<int, PBOFile>();
 
         public Home() {
             InitializeComponent();
@@ -44,7 +43,7 @@ namespace ArmaServerFrontend
 
             //Pbos
             int pboListCount = 0;
-            foreach (PboFiles pbo in DLL.ConfigValues.Pbos)
+            foreach (PBOFile pbo in DLL.ConfigValues.Pbos)
             {
                 NewPboTab(pbo);
                 if (pboListCount == 0) LoadPboContols(pbo);
@@ -119,9 +118,9 @@ namespace ArmaServerFrontend
         }
 
         // PBO setup 
-        private void NewPboTab(PboFiles newPboValues)
+        private void NewPboTab(PBOFile newPboValues)
         {
-            List<PboFiles> PboFilesUpdated = new List<PboFiles>();
+            List<PBOFile> PboFilesUpdated = new List<PBOFile>();
             int pboListCount = 0;
 
             /*if (PboFileBox.TabCount > 4)
@@ -130,7 +129,7 @@ namespace ArmaServerFrontend
                 return;
             }*/
 
-            foreach (KeyValuePair<int, PboFiles> pbo in pboList.ToList())
+            foreach (KeyValuePair<int, PBOFile> pbo in pboList.ToList())
             { 
                 pboListCount += 1;
                 PboFilesUpdated.Add(pbo.Value);
@@ -144,7 +143,7 @@ namespace ArmaServerFrontend
             DLL.ConfigValues.Pbos = PboFilesUpdated;
             DLL.ConfigFunctions.Save();
         }
-        private void LoadPboContols(PboFiles pboValues)
+        private void LoadPboContols(PBOFile pboValues)
         {  
             ModTypeCombo.SelectedIndex = (int)Enum.ToObject(typeof(PboModType), pboValues.ModType);
             PboEnabledCheckBox.Checked = pboValues.IsEnabled;
@@ -170,16 +169,16 @@ namespace ArmaServerFrontend
         private void UpdatePbos()
         {
             if (!preloaded) return;
-            List<PboFiles> PboFilesUpdated = new List<PboFiles>();
+            List<PBOFile> PboFilesUpdated = new List<PBOFile>();
 
-            foreach (KeyValuePair<int, PboFiles> pbo in pboList.ToList())
+            foreach (KeyValuePair<int, PBOFile> pbo in pboList.ToList())
             {
                 if (PboFileBox.SelectedIndex == pbo.Key)
                 {
                     PboFileBox.TabPages[pbo.Key].Text = PboNameBox.Text;
                     PboModType pboModType = (PboModType)Enum.ToObject(typeof(PboModType), ModTypeCombo.SelectedIndex);
 
-                    PboFiles PboFileUpdated = new PboFiles()
+                    PBOFile PboFileUpdated = new PBOFile()
                     {
                         ModType = pboModType,
                         IsEnabled = PboEnabledCheckBox.Checked,
@@ -215,9 +214,9 @@ namespace ArmaServerFrontend
         private void AddPboTabButton_Click(object sender, EventArgs e) => NewPboTab(new PboFilesDefault().Values(_IsEnabled:false));
         private void RemovePboButton_Click(object sender, EventArgs e)
         {
-            List<PboFiles> PboFilesUpdated = new List<PboFiles>();
+            List<PBOFile> PboFilesUpdated = new List<PBOFile>();
 
-            foreach (KeyValuePair<int, PboFiles> pbo in pboList.ToList()) if (PboFileBox.SelectedIndex != pbo.Key) PboFilesUpdated.Add(pboList[pbo.Key]);
+            foreach (KeyValuePair<int, PBOFile> pbo in pboList.ToList()) if (PboFileBox.SelectedIndex != pbo.Key) PboFilesUpdated.Add(pboList[pbo.Key]);
      
             pboList.Remove(PboFileBox.SelectedIndex);
             PboFileBox.TabPages.Remove(PboFileBox.TabPages[PboFileBox.SelectedIndex]);
@@ -231,7 +230,7 @@ namespace ArmaServerFrontend
             if (lastSelectedPbo == PboFileBox.SelectedIndex) return;
              
             lastSelectedPbo = PboFileBox.SelectedIndex;
-            foreach (KeyValuePair<int, PboFiles> pbo in pboList.ToList())
+            foreach (KeyValuePair<int, PBOFile> pbo in pboList.ToList())
             {
                 if (lastSelectedPbo == pbo.Key)
                 {
@@ -262,13 +261,9 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         } 
         private void LaunchButton_Click(object sender, EventArgs e)
-        {
-            isOnline = isOnline ? false : true;
-            LaunchButton.Text = isOnline ? "Stop" : "Start";
-            if (isOnline) LaunchButton.Enabled = false;
+        { 
             ArmaProcessIDBox.Text = DLL.UtilityFunctions.SwitchOnlineState(
                 ArmaProcessIDBox,
-                isOnline,
                 false,//runOnce
                 thisForm,
                 StartupProgressBar,
@@ -348,7 +343,21 @@ namespace ArmaServerFrontend
             OnHackedDataBox.Text = DLL.ConfigValues.serverSettings.onHackedData;
             OnDifferentDataBox.Text = DLL.ConfigValues.serverSettings.onDifferentData;
             DoubleIdDetectedBox.Text = DLL.ConfigValues.serverSettings.doubleIdDetected;
-            RegularCheckBox.Text = DLL.ConfigValues.serverSettings.regularCheck; 
+            RegularCheckBox.Text = DLL.ConfigValues.serverSettings.regularCheck;
+            var SavedSteamIDS = DLL.ConfigValues.serverSettings.admins;
+
+                 
+            foreach (var localSteamID in DLL.HelperFunctions.GetLocalSteamIDS())
+            {
+                if (!SavedSteamIDS.Contains(localSteamID))
+                {
+                    SavedSteamIDS.Add(localSteamID);
+                    updateConfig = true;
+                } 
+            }
+            DLL.ConfigValues.serverSettings.admins = SavedSteamIDS;
+
+
             DLL.HelperFunctions.AddListBoxValue(AdminsBox, DLL.ConfigValues.serverSettings.admins);
             UpnpCheckbox.Checked = DLL.ConfigValues.serverSettings.upnp;
             EnableLoopbackCheckBox.Checked = DLL.ConfigValues.serverSettings.loopback;
@@ -430,7 +439,7 @@ namespace ArmaServerFrontend
             DLL.ConfigValues.serverSettings.password = ServerPasswordBox.Text;
             DLL.ConfigFunctions.Save();
         }
-        private void GenerateServerPasswordButton_Click(object sender, EventArgs e) => ServerPasswordBox.Text = DLL.HelperFunctions.RandomString(5);
+        private void GenerateServerPasswordButton_Click(object sender, EventArgs e) => ServerPasswordBox.Text = DLL.HelperFunctions.CreateRandomString(5);
 
         //AdminPassword
         private void AdminPasswordBox_TextChanged(object sender, EventArgs e)
@@ -439,7 +448,7 @@ namespace ArmaServerFrontend
             DLL.ConfigValues.serverSettings.passwordAdmin = AdminPasswordBox.Text;
             DLL.ConfigFunctions.Save();
         }
-        private void GenerateAdminPasswordButton_Click(object sender, EventArgs e) => AdminPasswordBox.Text = DLL.HelperFunctions.RandomString(7);
+        private void GenerateAdminPasswordButton_Click(object sender, EventArgs e) => AdminPasswordBox.Text = DLL.HelperFunctions.CreateRandomString(7);
 
         //Command password
         private void ServerCMDPasswordBox_TextChanged(object sender, EventArgs e)
@@ -448,7 +457,7 @@ namespace ArmaServerFrontend
             DLL.ConfigValues.serverSettings.serverCommandPassword = ServerCMDPasswordBox.Text;
             DLL.ConfigFunctions.Save();
         }
-        private void GenerateCmdPasswordButton_Click(object sender, EventArgs e) => ServerCMDPasswordBox.Text = DLL.HelperFunctions.RandomVariable(8);
+        private void GenerateCmdPasswordButton_Click(object sender, EventArgs e) => ServerCMDPasswordBox.Text = DLL.HelperFunctions.CreateRandomVariable(8);
     
         //console log
         private void ServerLogBox_TextChanged(object sender, EventArgs e)
@@ -973,7 +982,7 @@ namespace ArmaServerFrontend
             }
 
             //Bad steamID
-            if (!DLL.HelperFunctions.isValidSteamID(AdminsAddBox.Text))
+            if (!DLL.HelperFunctions.IsValidSteamID(AdminsAddBox.Text))
             {
                 AdminsAddBox.Text = "";
                 MessageBox.Show("Enter a valid steamID!");
@@ -1107,7 +1116,7 @@ namespace ArmaServerFrontend
             }
 
             //Bad steamID
-            if (!DLL.HelperFunctions.isValidSteamID(FilePatchingExceptionsAddBox.Text))
+            if (!DLL.HelperFunctions.IsValidSteamID(FilePatchingExceptionsAddBox.Text))
             {
                 FilePatchingExceptionsAddBox.Text = "";
                 MessageBox.Show("Enter a valid steamID!");

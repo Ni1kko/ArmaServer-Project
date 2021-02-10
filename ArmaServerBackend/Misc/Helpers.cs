@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,22 +7,168 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.IO.Compression; 
 using System.Net;
+using Microsoft.Win32;
+using System.Globalization;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace ArmaServerBackend
 {
     public class Helpers
     {
-        private static Random random = new Random(); 
+        private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstvwxyz";
+        private static Random random = new Random();
 
-        public bool isValidSteamID(string steamID)
+        /// <summary>
+        /// Get the assembly version number
+        /// </summary>
+        /// <returns></returns>
+        public static string GetAppVersion()
         {
-            if (steamID.Length != 17) return false;
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+            return fileVersionInfo.ProductVersion;
+        }
 
+        /// <summary>
+        /// Gets Local steamIDs from steams config.vdf
+        /// </summary>
+        /// <returns>List of SteamIDs</returns>
+        public List<string> GetLocalSteamIDS()
+        {
+            string path;
+            List<string> LocalSteamIDS = new List<string>(); 
+            if (FindSteamConfig(out path)) foreach (KeyValuePair<string, string> steamConfig in ParseSteamConfig(path)) LocalSteamIDS.Add(steamConfig.Key);
+            return LocalSteamIDS;
+        }
+
+        /// <summary>
+        /// Gets Local Accounts from steams config.vdf
+        /// </summary>
+        /// <returns>List of SteamIDs</returns>
+        public List<string> GetLocalSteamAccount()
+        {
+            string path;
+            List<string> LocalSteamIDS = new List<string>();
+            if (FindSteamConfig(out path)) foreach (KeyValuePair<string, string> steamConfig in ParseSteamConfig(path)) LocalSteamIDS.Add(steamConfig.Value);
+            return LocalSteamIDS;
+        }
+
+        /// <summary>
+        /// Parses steams config.vdf
+        /// </summary>
+        /// <param name="configPath"></param>
+        /// <returns>Dictionary id, name</returns>
+        private Dictionary<string, string> ParseSteamConfig(string configPath)
+        {
+            Dictionary<string, string> user = new Dictionary<string, string>();
+            StreamReader file = new StreamReader(configPath);
+            String text = null;
+            String line;
+
+            int i = 0;
+            int k = 0;
+
+            while ((line = file.ReadLine().Trim()) != null)
+            {
+                if (line.Contains("Accounts"))
+                {
+                    text = line + "\n";
+                }
+                else if (text != null)
+                {
+                    text += line + "\n";
+                    if (line.Contains("{")) i++;
+                    if (line.Contains("}")) k++;
+                    if (i == k)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            file.Close();
+
+            var regex = new Regex(@"[^\S\r\n]+|.*Accounts.*|.*}.*|.*{.*", RegexOptions.Multiline);
+            text = regex.Replace(text, "");
+            text = text.Replace("\"SteamID\"", "");
+            text = text.Replace("\"", "");
+
+
+            string[] userIDArray = text.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (userIDArray.Length < 2 || userIDArray.Length % 2 != 0)
+                return user;
+
+            for (i = 1; i < userIDArray.Length; i = i + 2)
+            {
+                string name = userIDArray[i - 1];
+                string id = userIDArray[i];
+                user.Add(id, name);
+            }
+
+            return user;
+        }
+
+        /// <summary>
+        /// Finds steams config.vdf
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns>bool</returns>
+        private bool FindSteamConfig(out string path)
+        {
+            string configPath = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Valve\Steam", "InstallPath", string.Empty);
+            configPath += @"\config\config.vdf";
+            if (File.Exists(configPath))
+            {
+                path = configPath;
+                return true;
+            }
+            path = "";
+            return false;
+        }
+
+        /// <summary>
+        /// Check to see if given string steamID is valid
+        /// </summary>
+        /// <param name="steamID"></param>
+        /// <returns></returns>
+        public bool IsValidSteamID(string SteamIDIn)
+        {
+            long steamID;
+            bool status = long.TryParse(SteamIDIn, out steamID);
+            if (status && IsValidSteamID(steamID)) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Check to see if given steamID is valid
+        /// </summary>
+        /// <param name="steamID"></param>
+        /// <returns></returns>
+        public bool IsValidSteamID(long steamID)
+        {
             //TODO: Add steamkit dll and verify
+            if (steamID.ToString().Length != 17) return false;
 
             return true;
+            
         }
-         
+
+        /// <summary>
+        /// Checks if given string steamID is banned
+        /// </summary>
+        /// <param name="steamID"></param>
+        /// <returns>bool</returns>
+        public bool IsSteamIDBattlEyeBanned(string steamID) => (BEGuid.CheckSteamID(BEPort.Arma3, steamID) != "Clean");
+
+        /// <summary>
+        /// Checks if given steamID is banned
+        /// </summary>
+        /// <param name="steamID"></param>
+        /// <returns>bool</returns>
+        public bool IsSteamIDBattlEyeBanned(long steamID) => IsSteamIDBattlEyeBanned(steamID.ToString());
+ 
         /// <summary>
         /// Opens Folder Path Dialog and returns selected folder path
         /// </summary>
@@ -36,7 +181,20 @@ namespace ArmaServerBackend
             }
         }
 
-        
+        /// <summary>
+        /// Capitalize first letter of string
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public string Capitalize(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                throw new ArgumentException("ARGH!");
+            }
+            return input.First().ToString().ToUpper(new CultureInfo("en-UK", false)) + string.Join("", input.Skip(1));
+        }
+
         /// <summary>
         /// Add new string to list box
         /// </summary>
@@ -96,25 +254,15 @@ namespace ArmaServerBackend
         /// </summary>
         /// <param name="text"></param>
         /// <returns>bool</returns>
-        public bool StringContainsChar(string text)
-        {
-            List<string> letters = new List<string>() { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
-            foreach (string _char in letters) if (text.ToLower().Contains(_char)) return true;
-            return false;
-        }
-
+        public bool StringContainsChar(string text) => text.Any(x => char.IsLetter(x));
+       
         /// <summary>
         /// Checks to see if string contains a number
         /// </summary>
         /// <param name="text"></param>
         /// <returns>bool</returns>
-        public bool StringContainsNumber(string text)
-        {
-            List<string> numbers = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-            foreach (string _char in numbers) if (text.Contains(_char)) return true;
-            return false;
-        }
-
+        public bool StringContainsNumber(string text) => new Regex("^[0-9]*$").IsMatch(text);
+        
         /// <summary>
         /// Checks too see if string is already listed
         /// </summary>
@@ -138,7 +286,12 @@ namespace ArmaServerBackend
             if(textBox.Text == "") return false;
             return AlreadyInBox(listBox, textBox.Text);
         }
-        public static void DeleteDirectory(string target_dir)
+
+        /// <summary>
+        /// Deletes all file inside directory then attempt to delete directory
+        /// </summary>
+        /// <param name="target_dir"></param>
+        internal static void DeleteDirectory(string target_dir)
         {
             string[] files = Directory.GetFiles(target_dir);
             string[] dirs = Directory.GetDirectories(target_dir);
@@ -156,8 +309,96 @@ namespace ArmaServerBackend
 
             Directory.Delete(target_dir, false);
         }
-        internal static bool GitDownload(PboFiles pbo)
-        {  
+         
+        /// <summary>
+        /// Create new line(s)
+        /// </summary>
+        /// <param name="numOfLines"></param>
+        /// <returns>string of new line(s)</returns>
+        internal static string NewLine(int numOfLines = 1)
+        {
+            var newLines = "";
+            for (var i = 0; i < numOfLines; i++)
+            {
+                newLines += Environment.NewLine;
+            }
+            return newLines;
+        }
+        
+        /// <summary>
+        /// Create new tab(s)
+        /// </summary>
+        /// <param name="numOfTabs"></param>
+        /// <returns>string of new tab(s)</returns>
+        internal static string NewTab(int numOfTabs = 1)
+        {
+            var newLines = "";
+            for (var i = 0; i < numOfTabs; i++)
+            {
+                newLines += "\t";
+            }
+            return newLines;
+        }
+
+        /// <summary>
+        /// Creates Random string of given characters & length
+        /// </summary>
+        /// <param name="characters"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        internal static string CreateRandomString(string characters, int length) => new string(Enumerable.Repeat(characters, length).Select(s => s[random.Next(s.Length)]).ToArray());
+
+        /// <summary>
+        /// Creates Random string of given length
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public string CreateRandomString(int length) => CreateRandomString(chars, length);
+
+        /// <summary>
+        /// Creates Random Variable of given length
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public string CreateRandomVariable(int length)
+        {
+            string variable = CreateRandomString(1);
+            variable += CreateRandomString(string.Format("{0}_0123456789", chars), length);
+            if (variable.EndsWith("_")) variable = variable.TrimEnd('_');
+            return variable;
+        }
+
+        /// <summary>
+        /// Remove Comments form given file
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        internal static string RemoveComments(string file)
+        {
+            var blockComments = @"/\*(.*?)\*/";
+            var lineComments = @"//(.*?)\r?\n";
+            var strings = @"""((\\[^\n]|[^""\n])*)""";
+            var verbatimStrings = @"@(""[^""]*"")+";
+            return Regex.Replace(file, blockComments + "|" + lineComments + "|" + strings + "|" + verbatimStrings, line => {
+                if (line.Value.StartsWith("/*") || line.Value.StartsWith("//")) return line.Value.StartsWith("//") ? NewLine() : "";
+                return line.Value;// Keep the literal strings
+            }, RegexOptions.Singleline);
+        }
+
+        /// <summary>
+        /// Convert given file to one line
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        internal static string OneLine(string file) => RemoveComments(file).Replace("\n", " ").Replace("\r", "");
+
+        /// <summary>
+        /// Downloads PBO from a gitserver
+        /// </summary>
+        /// <param name="pbo"></param>
+        /// <returns>bool</returns>
+        internal static bool DownloadPBO(PBOFile pbo)
+        {
             Console.WriteLine("Pulling from git...");
 
             try
@@ -181,7 +422,7 @@ namespace ArmaServerBackend
                     }
                     else
                     {
-                        throw new Exception("Unknown git type! 1 = GitHub, 2 = GitLab");
+                        throw new Exception("Unknown git type! 0 = GitHub, 1 = GitLab");
                     }
                     webClient.DownloadFile(pbo.GitUrl, gitPath);
                 }
@@ -189,32 +430,22 @@ namespace ArmaServerBackend
                 if (Directory.Exists(Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch))) Directory.Delete(DLL.ConfigValues.GitDirectory, true);
                 Directory.CreateDirectory(DLL.ConfigValues.GitDirectory);
 
-                // very dirty hack for gitlab stupid file bullshit
                 if (pbo.GitServer == GitServer.GitLab)
                 {
-
+                    // very dirty hack for gitlab stupid file bullshit
                     using (ZipArchive archive = ZipFile.OpenRead(gitPath))
                     {
                         string folderName = archive.Entries[0].FullName;
-
                         foreach (ZipArchiveEntry entry in archive.Entries.Skip(1))
                         {
                             string name = DLL.ConfigValues.GitDirectory + "/" + entry.FullName.Replace(folderName, "");
-                            if (entry.FullName.EndsWith("/"))
-                            {
-                                Directory.CreateDirectory(name);
-                            }
-                            else
-                            {
-                                entry.ExtractToFile(name);
-                            }
+                            if (entry.FullName.EndsWith("/")) Directory.CreateDirectory(name); else entry.ExtractToFile(name);
                         }
                     }
+                    return true;
                 }
-                else
-                {
-                    ZipFile.ExtractToDirectory(gitPath, DLL.ConfigValues.GitDirectory); // github :)
-                }
+
+                ZipFile.ExtractToDirectory(gitPath, DLL.ConfigValues.GitDirectory);
 
                 return true;
             }
@@ -225,8 +456,125 @@ namespace ArmaServerBackend
             }
         }
 
-        internal static bool Move(PboFiles pbo)
-        { 
+        /// <summary>
+        /// Changes Variable in given string from a dictionary
+        /// </summary>
+        /// <param name="contents"></param>
+        /// <param name="vars"></param>
+        /// <returns>new contents</returns>
+        private static string RenameVariables(string contents, Dictionary<string, string> vars)
+        {
+            foreach (KeyValuePair<string, string> var in vars)  contents = Regex.Replace(contents, string.Format(@"\b{0}\b", Regex.Escape(var.Key)), var.Value, RegexOptions.Multiline | RegexOptions.IgnoreCase);//Relpace var in file with random var
+            return contents;
+        }
+
+        /// <summary>
+        /// Changes Function name in given string from a dictionary
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="outName"></param>
+        /// <param name="contents"></param>
+        /// <param name="vars"></param>
+        /// <returns>new Dictionary [outName], [contents]</returns>
+        private static string RenameVariables(string file, out string outName, string contents, Dictionary<string, string> vars)
+        {
+            outName = file;
+
+            foreach (KeyValuePair<string, string> var in vars)
+            { 
+                contents = contents.Replace(var.Key, var.Value);//Relpace function name in file with random var
+                if (file.Contains(var.Key)) outName = file.Replace(var.Key, var.Value);//Change file name of function to random var 
+            };
+
+            return contents;
+        }
+
+        /// <summary>
+        /// Check to see if file is a specifc extension
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="extension"></param>
+        /// <returns>bool</returns>
+        internal static bool IsExtension(string file, string extension) => (file.EndsWith($".{extension.Replace(".", "")}"));
+
+        /// <summary>
+        /// Check to see if file is in a list of extensions
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="extensions"></param>
+        /// <returns>bool</returns>
+        internal static bool IsExtension(string file, List<string> extensions)
+        {
+            foreach (string extension in extensions) if (IsExtension(file, extension)) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Randomizes PBO variables and functions
+        /// </summary>
+        /// <param name="pbo"></param>
+        internal static void RandomizePBO(PBOFile pbo)
+        {
+            string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
+            List<string> badExtensions = new List<string>() {
+                "ogg","paa","jpg","png","p3d"
+            };
+
+            Console.WriteLine($"Begining {pbo.Name} obfuscation");
+
+            foreach (string file in (Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories)))
+            { 
+                if (IsExtension(file, badExtensions)) continue;
+                
+                string outName = file;
+                string contents = File.ReadAllText(outName);
+
+                if (pbo.RandomizeGlobalVariables) contents = RenameVariables(contents, DLL._globalVars);
+                if (pbo.RandomizeLocalVariables) contents = RenameVariables(contents, DLL._localVars);
+                if (pbo.RandomizeFunctions) contents = RenameVariables(file, out outName, contents, DLL._scriptFuncs);
+                if (pbo.SingleLineFunctions && file.EndsWith(".sqf")) contents = OneLine(contents);
+
+                File.WriteAllText(file, contents);
+                if (file != outName)
+                {
+                    Console.WriteLine($"Filename Updated: {file} => {outName}");
+                    File.Move(file, outName);
+                }
+            }
+
+            Console.WriteLine($"{pbo.Name} obfuscated.");
+        }
+         
+        /// <summary>
+        /// Pack a folder into .bpo format
+        /// </summary>
+        /// <param name="pbo"></param>
+        internal static void PackPBO(PBOFile pbo)
+        {
+
+            string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
+            string modPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.Name);
+
+            Console.WriteLine($"Packing {pbo.Name}\n");
+
+            PboFile pboFile = new PboFile();
+            foreach (string files in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+            {
+                string path = files.Replace(folderPath, "");
+                if (path.StartsWith(@"\")) path = path.Substring(1);
+                string file = File.ReadAllText(files);
+                pboFile.AddEntry(path, Encoding.UTF8.GetBytes(file));
+            }
+            pboFile.Save($"{modPath}.pbo");
+        }
+
+        /// <summary>
+        /// Moves a PBO to new location
+        /// </summary>
+        /// <param name="pbo"></param>
+        /// <returns></returns>
+        internal static bool MovePBO(PBOFile pbo)
+        {
             string modPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.Name) + ".pbo";
             string serverPath = Path.Combine(pbo.ServerPath, pbo.Name) + ".pbo";
             if (pbo.ModType != PboModType.Mission) serverPath = Path.Combine(pbo.ServerPath, "addons", pbo.Name) + ".pbo";
@@ -245,119 +593,5 @@ namespace ArmaServerBackend
             }
         }
 
-        internal static void Pack(PboFiles pbo)
-        {
-
-            string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
-            string modPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.Name); 
-
-            Console.WriteLine($"Packing {pbo.Name}\n");
-
-            PboFile pboFile = new PboFile(); 
-            foreach (string files in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
-            {
-                string path = files.Replace(folderPath, "");
-                if (path.StartsWith(@"\")) path = path.Substring(1);
-                string file = File.ReadAllText(files);
-                pboFile.AddEntry(path, Encoding.UTF8.GetBytes(file));
-            }
-            pboFile.Save($"{modPath}.pbo");
-        }
-  
-        internal static string NewLine(int numOfLines = 1)
-        {
-            var newLines = "";
-            for (var i = 0; i < numOfLines; i++)
-            {
-                newLines += Environment.NewLine;
-            }
-            return newLines;
-        }
-        internal static string NewTab(int numOfTabs = 1)
-        {
-            var newLines = "";
-            for (var i = 0; i < numOfTabs; i++)
-            {
-                newLines += "\t";
-            }
-            return newLines;
-        }
-
-        private static string RemoveComments(string source)
-        {
-            var blockComments = @"/\*(.*?)\*/";
-            var lineComments = @"//(.*?)\r?\n";
-            var strings = @"""((\\[^\n]|[^""\n])*)""";
-            var verbatimStrings = @"@(""[^""]*"")+";
-            string noComments = Regex.Replace(source, blockComments + "|" + lineComments + "|" + strings + "|" + verbatimStrings, line => {
-                if (line.Value.StartsWith("/*") || line.Value.StartsWith("//")) return line.Value.StartsWith("//") ? NewLine() : "";
-                return line.Value;// Keep the literal strings
-            }, RegexOptions.Singleline);
-
-            return noComments;
-        }
-        
-        private static string OneLine(string file) => RemoveComments(file).Replace("\n", " ").Replace("\r", "");
-          
-        private static string RenameVars(string contents, Dictionary<string, string> vars)
-        { 
-            foreach (KeyValuePair<string, string> var in vars)
-            {
-                string pattern = string.Format(@"\b{0}\b", Regex.Escape(var.Key));
-                contents = Regex.Replace(contents, pattern, var.Value, RegexOptions.Multiline | RegexOptions.IgnoreCase);
-            }
-            return contents;
-        }
-
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstvwxyz";
-        private static string CreateRandomString(string character, int length) => new string(Enumerable.Repeat(character, length).Select(s => s[random.Next(s.Length)]).ToArray());
-
-        public string RandomString(int length) => CreateRandomString(chars, length);
-         
-        public string RandomVariable(int length)
-        {
-            string variable = RandomString(1);
-            variable += CreateRandomString(string.Format("{0}_0123456789", chars), length);
-            if (variable.EndsWith("_")) variable = variable.TrimEnd('_');
-            return variable;
-        }
-
-        internal static void RandomizeEverything(PboFiles pbo)
-        {
-            string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
-
-            Console.WriteLine($"Begining {pbo.Name} obfuscation");
-
-            foreach (string file in (Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories)))
-            {
-                string outName = file;
-
-                if (outName.EndsWith(".ogg") || outName.EndsWith(".paa") || outName.EndsWith(".jpg") || outName.EndsWith(".png")) continue;
-
-                string contents = File.ReadAllText(outName);
-
-                if (pbo.RandomizeGlobalVariables) contents = RenameVars(contents, DLL._globalVars);
-                if (pbo.RandomizeLocalVariables) contents = RenameVars(contents, DLL._localVars);
-                if (pbo.RandomizeFunctions) 
-                {
-                    foreach (KeyValuePair<string, string> var in DLL._scriptFuncs)
-                    {
-                        contents = contents.Replace(var.Key, var.Value);
-                        if (file.Contains(var.Key))
-                        {
-                            outName = file.Replace(var.Key, var.Value);
-                            Console.WriteLine($"Filename: {file} => {outName}");
-                        }
-                    }
-                }
-
-                if (pbo.SingleLineFunctions && file.EndsWith(".sqf")) contents = OneLine(contents);
-
-                File.WriteAllText(file, contents);
-                if (file != outName) File.Move(file, outName);
-            }
-
-            Console.WriteLine($"{pbo.Name} obfuscated.");
-        }
     }
 }

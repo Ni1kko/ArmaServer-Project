@@ -52,14 +52,42 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BattleNET">
+      <HintPath>Embedded\BattleNET.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Win32.Registry">
+      <HintPath>Embedded\Microsoft.Win32.Registry.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Embedded\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="protobuf-net">
+      <HintPath>Embedded\protobuf-net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SteamKit2">
+      <HintPath>Embedded\SteamKit2.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security.AccessControl">
+      <HintPath>Embedded\System.Security.AccessControl.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows">
+      <HintPath>Embedded\System.Security.Principal.Windows.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -71,14 +99,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\Classes\LaunchParameters.cs" />
-    <Compile Include="Config\Classes\PboFiles.cs" />
+    <Compile Include="Config\Classes\PBOFile.cs" />
     <Compile Include="Config\Classes\Settings.cs" />
     <Compile Include="Config\Config.cs" />
+    <Compile Include="Enums\BEPort.cs" />
     <Compile Include="Enums\GitServer.cs" />
     <Compile Include="DLL.cs" />
     <Compile Include="Embedded\Embedded.cs" />
     <Compile Include="Enums\MissionDifficulty.cs" />
     <Compile Include="Enums\PboModType.cs" />
+    <Compile Include="Misc\BEGuid.cs" />
     <Compile Include="Misc\Components.cs" />
     <Compile Include="Misc\Helpers.cs" />
     <Compile Include="Misc\Pbo\PboCompressionStream.cs" />
@@ -86,6 +116,7 @@
     <Compile Include="Misc\Pbo\PboFile.cs" />
     <Compile Include="Misc\Pbo\PboPacking.cs" />
     <Compile Include="Misc\Pbo\PboResolver.cs" />
+    <Compile Include="Misc\Steam.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Misc\Utilities.cs" />
     <Compile Include="Config\Classes\ServerBasicSettings.cs" />
@@ -94,7 +125,16 @@
   <ItemGroup>
     <EmbeddedResource Include="Embedded\Newtonsoft.Json.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Embedded\Microsoft.Win32.Registry.dll" />
+    <EmbeddedResource Include="Embedded\protobuf-net.dll" />
+    <EmbeddedResource Include="Embedded\SteamKit2.dll" />
+    <EmbeddedResource Include="Embedded\System.Security.AccessControl.dll" />
+    <EmbeddedResource Include="Embedded\System.Security.Principal.Windows.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Embedded\BattleNET.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" Eazfuscator.NET.exe "$(TargetPath)" --msbuild-project-path "$(ProjectPath)" --msbuild-project-configuration "$(ConfigurationName)" --msbuild-project-platform "$(PlatformName)" --msbuild-solution-path "$(SolutionPath)" -n --newline-flush -v 2018.2</PostBuildEvent>
