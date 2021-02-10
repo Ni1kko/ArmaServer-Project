@@ -1,6 +1,6 @@
 ﻿ namespace ArmaServerFrontend
-{ 
-    partial class Home
+{
+    internal partial class Home
     {
         /// <summary>
         /// Required designer variable.
@@ -28,13 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.KillArmaCheckBox = new System.Windows.Forms.CheckBox();
-            this.ServerDirectoryPathBox = new System.Windows.Forms.TextBox();
-            this.BrowseServerDirectory = new System.Windows.Forms.Button();
             this.BrowseGitDirectory = new System.Windows.Forms.Button();
             this.GitDirectoryPathBox = new System.Windows.Forms.TextBox();
             this.GitDirectoryLabel = new System.Windows.Forms.Label();
-            this.ServerDirectoryLabel = new System.Windows.Forms.Label();
             this.FncTagLabel = new System.Windows.Forms.Label();
             this.FncTagBox = new System.Windows.Forms.TextBox();
             this.FncLengthCombo = new System.Windows.Forms.ComboBox();
@@ -42,7 +38,6 @@
             this.FncLengthLabel = new System.Windows.Forms.Label();
             this.VarLengthLabel = new System.Windows.Forms.Label();
             this.LaunchButton = new System.Windows.Forms.Button();
-            this.Use64BitArmaButton = new System.Windows.Forms.CheckBox();
             this.PboStartTab = new System.Windows.Forms.TabPage();
             this.PboFileBox = new System.Windows.Forms.TabControl();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -81,43 +76,45 @@
             this.GlobalVariablesListBox = new System.Windows.Forms.ListBox();
             this.FunctionsListBox = new System.Windows.Forms.ListBox();
             this.FunctionsListLabel = new System.Windows.Forms.Label();
+            this.Pages = new System.Windows.Forms.TabControl();
+            this.MainTab = new System.Windows.Forms.TabPage();
+            this.ServerTab = new System.Windows.Forms.TabPage();
+            this.DefaultConsoleLogButton = new System.Windows.Forms.Button();
+            this.GenerateCmdPasswordButton = new System.Windows.Forms.Button();
+            this.GenerateAdminPasswordButton = new System.Windows.Forms.Button();
+            this.GenerateServerPasswordButton = new System.Windows.Forms.Button();
+            this.MotdIntervalLabel = new System.Windows.Forms.Label();
+            this.MotdIntervalBox = new System.Windows.Forms.TextBox();
+            this.MotdRemoveButton = new System.Windows.Forms.Button();
+            this.MotdAddButton = new System.Windows.Forms.Button();
+            this.MotdAddBox = new System.Windows.Forms.TextBox();
+            this.MotdBox = new System.Windows.Forms.ListBox();
+            this.MotdLabel = new System.Windows.Forms.Label();
+            this.ServerLogLabel = new System.Windows.Forms.Label();
+            this.ServerLogBox = new System.Windows.Forms.TextBox();
+            this.ServerCMDPasswordLabel = new System.Windows.Forms.Label();
+            this.ServerCMDPasswordBox = new System.Windows.Forms.TextBox();
+            this.AdminPasswordLLabel = new System.Windows.Forms.Label();
+            this.AdminPasswordBox = new System.Windows.Forms.TextBox();
+            this.ServerPasswordLabel = new System.Windows.Forms.Label();
+            this.ServerPasswordBox = new System.Windows.Forms.TextBox();
+            this.ServerDirectoryLabel = new System.Windows.Forms.Label();
+            this.ServerDirectoryPathBox = new System.Windows.Forms.TextBox();
+            this.BrowseServerDirectory = new System.Windows.Forms.Button();
+            this.HostNameLabel = new System.Windows.Forms.Label();
+            this.HostNameBox = new System.Windows.Forms.TextBox();
+            this.Use64BitArmaButton = new System.Windows.Forms.CheckBox();
             this.PboFileBox.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.Pages.SuspendLayout();
+            this.MainTab.SuspendLayout();
+            this.ServerTab.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // KillArmaCheckBox
-            // 
-            this.KillArmaCheckBox.AutoSize = true;
-            this.KillArmaCheckBox.Location = new System.Drawing.Point(341, 111);
-            this.KillArmaCheckBox.Name = "KillArmaCheckBox";
-            this.KillArmaCheckBox.Size = new System.Drawing.Size(81, 17);
-            this.KillArmaCheckBox.TabIndex = 0;
-            this.KillArmaCheckBox.Text = "Stop Arma3";
-            this.KillArmaCheckBox.UseVisualStyleBackColor = true;
-            this.KillArmaCheckBox.CheckedChanged += new System.EventHandler(this.KillArmaCheckBox_CheckedChanged);
-            // 
-            // ServerDirectoryPathBox
-            // 
-            this.ServerDirectoryPathBox.Location = new System.Drawing.Point(29, 21);
-            this.ServerDirectoryPathBox.Name = "ServerDirectoryPathBox";
-            this.ServerDirectoryPathBox.Size = new System.Drawing.Size(379, 20);
-            this.ServerDirectoryPathBox.TabIndex = 1;
-            this.ServerDirectoryPathBox.TextChanged += new System.EventHandler(this.ServerDirectoryPathBox_TextChanged);
-            // 
-            // BrowseServerDirectory
-            // 
-            this.BrowseServerDirectory.Location = new System.Drawing.Point(414, 21);
-            this.BrowseServerDirectory.Name = "BrowseServerDirectory";
-            this.BrowseServerDirectory.Size = new System.Drawing.Size(86, 20);
-            this.BrowseServerDirectory.TabIndex = 2;
-            this.BrowseServerDirectory.Text = "Browse";
-            this.BrowseServerDirectory.UseVisualStyleBackColor = true;
-            this.BrowseServerDirectory.Click += new System.EventHandler(this.BrowseServerDirectory_Click);
             // 
             // BrowseGitDirectory
             // 
-            this.BrowseGitDirectory.Location = new System.Drawing.Point(414, 70);
+            this.BrowseGitDirectory.Location = new System.Drawing.Point(457, 29);
             this.BrowseGitDirectory.Name = "BrowseGitDirectory";
             this.BrowseGitDirectory.Size = new System.Drawing.Size(86, 20);
             this.BrowseGitDirectory.TabIndex = 4;
@@ -127,34 +124,25 @@
             // 
             // GitDirectoryPathBox
             // 
-            this.GitDirectoryPathBox.Location = new System.Drawing.Point(29, 70);
+            this.GitDirectoryPathBox.Location = new System.Drawing.Point(30, 29);
             this.GitDirectoryPathBox.Name = "GitDirectoryPathBox";
-            this.GitDirectoryPathBox.Size = new System.Drawing.Size(379, 20);
+            this.GitDirectoryPathBox.Size = new System.Drawing.Size(421, 20);
             this.GitDirectoryPathBox.TabIndex = 3;
             this.GitDirectoryPathBox.TextChanged += new System.EventHandler(this.GitDirectoryPathBox_TextChanged);
             // 
             // GitDirectoryLabel
             // 
             this.GitDirectoryLabel.AutoSize = true;
-            this.GitDirectoryLabel.Location = new System.Drawing.Point(26, 54);
+            this.GitDirectoryLabel.Location = new System.Drawing.Point(27, 13);
             this.GitDirectoryLabel.Name = "GitDirectoryLabel";
             this.GitDirectoryLabel.Size = new System.Drawing.Size(65, 13);
             this.GitDirectoryLabel.TabIndex = 5;
             this.GitDirectoryLabel.Text = "Git Directory";
             // 
-            // ServerDirectoryLabel
-            // 
-            this.ServerDirectoryLabel.AutoSize = true;
-            this.ServerDirectoryLabel.Location = new System.Drawing.Point(26, 5);
-            this.ServerDirectoryLabel.Name = "ServerDirectoryLabel";
-            this.ServerDirectoryLabel.Size = new System.Drawing.Size(83, 13);
-            this.ServerDirectoryLabel.TabIndex = 6;
-            this.ServerDirectoryLabel.Text = "Server Directory";
-            // 
             // FncTagLabel
             // 
             this.FncTagLabel.AutoSize = true;
-            this.FncTagLabel.Location = new System.Drawing.Point(26, 96);
+            this.FncTagLabel.Location = new System.Drawing.Point(67, 54);
             this.FncTagLabel.Name = "FncTagLabel";
             this.FncTagLabel.Size = new System.Drawing.Size(70, 13);
             this.FncTagLabel.TabIndex = 8;
@@ -162,7 +150,7 @@
             // 
             // FncTagBox
             // 
-            this.FncTagBox.Location = new System.Drawing.Point(29, 112);
+            this.FncTagBox.Location = new System.Drawing.Point(70, 70);
             this.FncTagBox.Name = "FncTagBox";
             this.FncTagBox.Size = new System.Drawing.Size(80, 20);
             this.FncTagBox.TabIndex = 7;
@@ -189,7 +177,7 @@
             "13",
             "14",
             "15"});
-            this.FncLengthCombo.Location = new System.Drawing.Point(133, 111);
+            this.FncLengthCombo.Location = new System.Drawing.Point(241, 70);
             this.FncLengthCombo.Name = "FncLengthCombo";
             this.FncLengthCombo.Size = new System.Drawing.Size(86, 21);
             this.FncLengthCombo.TabIndex = 9;
@@ -216,7 +204,7 @@
             "13",
             "14",
             "15"});
-            this.VarLengthCombo.Location = new System.Drawing.Point(245, 111);
+            this.VarLengthCombo.Location = new System.Drawing.Point(419, 69);
             this.VarLengthCombo.Name = "VarLengthCombo";
             this.VarLengthCombo.Size = new System.Drawing.Size(83, 21);
             this.VarLengthCombo.TabIndex = 10;
@@ -226,7 +214,7 @@
             // FncLengthLabel
             // 
             this.FncLengthLabel.AutoSize = true;
-            this.FncLengthLabel.Location = new System.Drawing.Point(130, 95);
+            this.FncLengthLabel.Location = new System.Drawing.Point(238, 54);
             this.FncLengthLabel.Name = "FncLengthLabel";
             this.FncLengthLabel.Size = new System.Drawing.Size(89, 13);
             this.FncLengthLabel.TabIndex = 11;
@@ -235,7 +223,7 @@
             // VarLengthLabel
             // 
             this.VarLengthLabel.AutoSize = true;
-            this.VarLengthLabel.Location = new System.Drawing.Point(242, 95);
+            this.VarLengthLabel.Location = new System.Drawing.Point(416, 53);
             this.VarLengthLabel.Name = "VarLengthLabel";
             this.VarLengthLabel.Size = new System.Drawing.Size(86, 13);
             this.VarLengthLabel.TabIndex = 12;
@@ -243,7 +231,7 @@
             // 
             // LaunchButton
             // 
-            this.LaunchButton.Location = new System.Drawing.Point(234, 654);
+            this.LaunchButton.Location = new System.Drawing.Point(248, 652);
             this.LaunchButton.Name = "LaunchButton";
             this.LaunchButton.Size = new System.Drawing.Size(75, 23);
             this.LaunchButton.TabIndex = 13;
@@ -251,23 +239,12 @@
             this.LaunchButton.UseVisualStyleBackColor = true;
             this.LaunchButton.Click += new System.EventHandler(this.LaunchButton_Click);
             // 
-            // Use64BitArmaButton
-            // 
-            this.Use64BitArmaButton.AutoSize = true;
-            this.Use64BitArmaButton.Location = new System.Drawing.Point(428, 111);
-            this.Use64BitArmaButton.Name = "Use64BitArmaButton";
-            this.Use64BitArmaButton.Size = new System.Drawing.Size(83, 17);
-            this.Use64BitArmaButton.TabIndex = 14;
-            this.Use64BitArmaButton.Text = "Arma3 64Bit";
-            this.Use64BitArmaButton.UseVisualStyleBackColor = true;
-            this.Use64BitArmaButton.CheckedChanged += new System.EventHandler(this.Use64BitArmaButton_CheckedChanged);
-            // 
             // PboStartTab
             // 
             this.PboStartTab.Location = new System.Drawing.Point(4, 22);
             this.PboStartTab.Name = "PboStartTab";
             this.PboStartTab.Padding = new System.Windows.Forms.Padding(3);
-            this.PboStartTab.Size = new System.Drawing.Size(806, 0);
+            this.PboStartTab.Size = new System.Drawing.Size(505, 0);
             this.PboStartTab.TabIndex = 0;
             this.PboStartTab.Text = "tabPage1";
             this.PboStartTab.UseVisualStyleBackColor = true;
@@ -275,10 +252,10 @@
             // PboFileBox
             // 
             this.PboFileBox.Controls.Add(this.PboStartTab);
-            this.PboFileBox.Location = new System.Drawing.Point(12, 439);
+            this.PboFileBox.Location = new System.Drawing.Point(26, 437);
             this.PboFileBox.Name = "PboFileBox";
             this.PboFileBox.SelectedIndex = 0;
-            this.PboFileBox.Size = new System.Drawing.Size(814, 20);
+            this.PboFileBox.Size = new System.Drawing.Size(513, 20);
             this.PboFileBox.TabIndex = 16;
             this.PboFileBox.Click += new System.EventHandler(this.PboFileBox_Click);
             // 
@@ -301,7 +278,7 @@
             this.panel1.Controls.Add(this.GitPathBox);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.PboNameBox);
-            this.panel1.Location = new System.Drawing.Point(12, 467);
+            this.panel1.Location = new System.Drawing.Point(26, 465);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(513, 179);
             this.panel1.TabIndex = 17;
@@ -471,7 +448,7 @@
             // 
             // AddPboTabButton
             // 
-            this.AddPboTabButton.Location = new System.Drawing.Point(12, 410);
+            this.AddPboTabButton.Location = new System.Drawing.Point(26, 408);
             this.AddPboTabButton.Name = "AddPboTabButton";
             this.AddPboTabButton.Size = new System.Drawing.Size(250, 23);
             this.AddPboTabButton.TabIndex = 18;
@@ -481,7 +458,7 @@
             // 
             // RemovePboButton
             // 
-            this.RemovePboButton.Location = new System.Drawing.Point(275, 410);
+            this.RemovePboButton.Location = new System.Drawing.Point(289, 408);
             this.RemovePboButton.Name = "RemovePboButton";
             this.RemovePboButton.Size = new System.Drawing.Size(250, 23);
             this.RemovePboButton.TabIndex = 19;
@@ -506,14 +483,14 @@
             this.panel2.Controls.Add(this.GlobalVariablesListBox);
             this.panel2.Controls.Add(this.FunctionsListBox);
             this.panel2.Controls.Add(this.FunctionsListLabel);
-            this.panel2.Location = new System.Drawing.Point(12, 138);
+            this.panel2.Location = new System.Drawing.Point(30, 96);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(513, 266);
+            this.panel2.Size = new System.Drawing.Size(513, 292);
             this.panel2.TabIndex = 20;
             // 
             // LocalRemoveSelectedVariableButton
             // 
-            this.LocalRemoveSelectedVariableButton.Location = new System.Drawing.Point(347, 227);
+            this.LocalRemoveSelectedVariableButton.Location = new System.Drawing.Point(347, 260);
             this.LocalRemoveSelectedVariableButton.Name = "LocalRemoveSelectedVariableButton";
             this.LocalRemoveSelectedVariableButton.Size = new System.Drawing.Size(154, 26);
             this.LocalRemoveSelectedVariableButton.TabIndex = 26;
@@ -523,7 +500,7 @@
             // 
             // LocalVariablesListAddButton
             // 
-            this.LocalVariablesListAddButton.Location = new System.Drawing.Point(347, 201);
+            this.LocalVariablesListAddButton.Location = new System.Drawing.Point(347, 234);
             this.LocalVariablesListAddButton.Name = "LocalVariablesListAddButton";
             this.LocalVariablesListAddButton.Size = new System.Drawing.Size(154, 20);
             this.LocalVariablesListAddButton.TabIndex = 25;
@@ -533,7 +510,7 @@
             // 
             // LocalVariablesListAddBox
             // 
-            this.LocalVariablesListAddBox.Location = new System.Drawing.Point(342, 170);
+            this.LocalVariablesListAddBox.Location = new System.Drawing.Point(342, 203);
             this.LocalVariablesListAddBox.Name = "LocalVariablesListAddBox";
             this.LocalVariablesListAddBox.Size = new System.Drawing.Size(159, 20);
             this.LocalVariablesListAddBox.TabIndex = 24;
@@ -552,12 +529,12 @@
             this.LocalVariablesListBox.FormattingEnabled = true;
             this.LocalVariablesListBox.Location = new System.Drawing.Point(342, 17);
             this.LocalVariablesListBox.Name = "LocalVariablesListBox";
-            this.LocalVariablesListBox.Size = new System.Drawing.Size(159, 147);
+            this.LocalVariablesListBox.Size = new System.Drawing.Size(159, 173);
             this.LocalVariablesListBox.TabIndex = 22;
             // 
             // GlobalRemoveSelectedVariableButton
             // 
-            this.GlobalRemoveSelectedVariableButton.Location = new System.Drawing.Point(182, 227);
+            this.GlobalRemoveSelectedVariableButton.Location = new System.Drawing.Point(182, 260);
             this.GlobalRemoveSelectedVariableButton.Name = "GlobalRemoveSelectedVariableButton";
             this.GlobalRemoveSelectedVariableButton.Size = new System.Drawing.Size(154, 26);
             this.GlobalRemoveSelectedVariableButton.TabIndex = 21;
@@ -567,7 +544,7 @@
             // 
             // RemoveSelectedFunctionButton
             // 
-            this.RemoveSelectedFunctionButton.Location = new System.Drawing.Point(12, 227);
+            this.RemoveSelectedFunctionButton.Location = new System.Drawing.Point(12, 260);
             this.RemoveSelectedFunctionButton.Name = "RemoveSelectedFunctionButton";
             this.RemoveSelectedFunctionButton.Size = new System.Drawing.Size(159, 26);
             this.RemoveSelectedFunctionButton.TabIndex = 20;
@@ -577,7 +554,7 @@
             // 
             // GlobalVariablesListAddButton
             // 
-            this.GlobalVariablesListAddButton.Location = new System.Drawing.Point(182, 201);
+            this.GlobalVariablesListAddButton.Location = new System.Drawing.Point(182, 234);
             this.GlobalVariablesListAddButton.Name = "GlobalVariablesListAddButton";
             this.GlobalVariablesListAddButton.Size = new System.Drawing.Size(154, 20);
             this.GlobalVariablesListAddButton.TabIndex = 16;
@@ -587,14 +564,14 @@
             // 
             // GlobalVariablesListAddBox
             // 
-            this.GlobalVariablesListAddBox.Location = new System.Drawing.Point(177, 170);
+            this.GlobalVariablesListAddBox.Location = new System.Drawing.Point(177, 203);
             this.GlobalVariablesListAddBox.Name = "GlobalVariablesListAddBox";
             this.GlobalVariablesListAddBox.Size = new System.Drawing.Size(159, 20);
             this.GlobalVariablesListAddBox.TabIndex = 15;
             // 
             // FunctionsListAddButton
             // 
-            this.FunctionsListAddButton.Location = new System.Drawing.Point(14, 201);
+            this.FunctionsListAddButton.Location = new System.Drawing.Point(14, 234);
             this.FunctionsListAddButton.Name = "FunctionsListAddButton";
             this.FunctionsListAddButton.Size = new System.Drawing.Size(157, 20);
             this.FunctionsListAddButton.TabIndex = 14;
@@ -604,7 +581,7 @@
             // 
             // FunctionsListAddBox
             // 
-            this.FunctionsListAddBox.Location = new System.Drawing.Point(12, 170);
+            this.FunctionsListAddBox.Location = new System.Drawing.Point(12, 203);
             this.FunctionsListAddBox.Name = "FunctionsListAddBox";
             this.FunctionsListAddBox.Size = new System.Drawing.Size(159, 20);
             this.FunctionsListAddBox.TabIndex = 13;
@@ -623,7 +600,7 @@
             this.GlobalVariablesListBox.FormattingEnabled = true;
             this.GlobalVariablesListBox.Location = new System.Drawing.Point(177, 17);
             this.GlobalVariablesListBox.Name = "GlobalVariablesListBox";
-            this.GlobalVariablesListBox.Size = new System.Drawing.Size(159, 147);
+            this.GlobalVariablesListBox.Size = new System.Drawing.Size(159, 173);
             this.GlobalVariablesListBox.TabIndex = 11;
             // 
             // FunctionsListBox
@@ -631,7 +608,7 @@
             this.FunctionsListBox.FormattingEnabled = true;
             this.FunctionsListBox.Location = new System.Drawing.Point(12, 17);
             this.FunctionsListBox.Name = "FunctionsListBox";
-            this.FunctionsListBox.Size = new System.Drawing.Size(159, 147);
+            this.FunctionsListBox.Size = new System.Drawing.Size(159, 173);
             this.FunctionsListBox.TabIndex = 10;
             // 
             // FunctionsListLabel
@@ -643,31 +620,308 @@
             this.FunctionsListLabel.TabIndex = 9;
             this.FunctionsListLabel.Text = "Functions";
             // 
+            // Pages
+            // 
+            this.Pages.Controls.Add(this.MainTab);
+            this.Pages.Controls.Add(this.ServerTab);
+            this.Pages.Location = new System.Drawing.Point(0, 0);
+            this.Pages.Name = "Pages";
+            this.Pages.SelectedIndex = 0;
+            this.Pages.Size = new System.Drawing.Size(577, 712);
+            this.Pages.TabIndex = 21;
+            this.Pages.Tag = "";
+            // 
+            // MainTab
+            // 
+            this.MainTab.Controls.Add(this.panel2);
+            this.MainTab.Controls.Add(this.RemovePboButton);
+            this.MainTab.Controls.Add(this.AddPboTabButton);
+            this.MainTab.Controls.Add(this.GitDirectoryPathBox);
+            this.MainTab.Controls.Add(this.panel1);
+            this.MainTab.Controls.Add(this.BrowseGitDirectory);
+            this.MainTab.Controls.Add(this.PboFileBox);
+            this.MainTab.Controls.Add(this.GitDirectoryLabel);
+            this.MainTab.Controls.Add(this.FncTagBox);
+            this.MainTab.Controls.Add(this.LaunchButton);
+            this.MainTab.Controls.Add(this.FncTagLabel);
+            this.MainTab.Controls.Add(this.VarLengthLabel);
+            this.MainTab.Controls.Add(this.FncLengthCombo);
+            this.MainTab.Controls.Add(this.FncLengthLabel);
+            this.MainTab.Controls.Add(this.VarLengthCombo);
+            this.MainTab.Location = new System.Drawing.Point(4, 22);
+            this.MainTab.Name = "MainTab";
+            this.MainTab.Padding = new System.Windows.Forms.Padding(3);
+            this.MainTab.Size = new System.Drawing.Size(569, 686);
+            this.MainTab.TabIndex = 0;
+            this.MainTab.Text = "Main Settings";
+            this.MainTab.UseVisualStyleBackColor = true;
+            // 
+            // ServerTab
+            // 
+            this.ServerTab.Controls.Add(this.DefaultConsoleLogButton);
+            this.ServerTab.Controls.Add(this.GenerateCmdPasswordButton);
+            this.ServerTab.Controls.Add(this.GenerateAdminPasswordButton);
+            this.ServerTab.Controls.Add(this.GenerateServerPasswordButton);
+            this.ServerTab.Controls.Add(this.MotdIntervalLabel);
+            this.ServerTab.Controls.Add(this.MotdIntervalBox);
+            this.ServerTab.Controls.Add(this.MotdRemoveButton);
+            this.ServerTab.Controls.Add(this.MotdAddButton);
+            this.ServerTab.Controls.Add(this.MotdAddBox);
+            this.ServerTab.Controls.Add(this.MotdBox);
+            this.ServerTab.Controls.Add(this.MotdLabel);
+            this.ServerTab.Controls.Add(this.ServerLogLabel);
+            this.ServerTab.Controls.Add(this.ServerLogBox);
+            this.ServerTab.Controls.Add(this.ServerCMDPasswordLabel);
+            this.ServerTab.Controls.Add(this.ServerCMDPasswordBox);
+            this.ServerTab.Controls.Add(this.AdminPasswordLLabel);
+            this.ServerTab.Controls.Add(this.AdminPasswordBox);
+            this.ServerTab.Controls.Add(this.ServerPasswordLabel);
+            this.ServerTab.Controls.Add(this.ServerPasswordBox);
+            this.ServerTab.Controls.Add(this.ServerDirectoryLabel);
+            this.ServerTab.Controls.Add(this.ServerDirectoryPathBox);
+            this.ServerTab.Controls.Add(this.BrowseServerDirectory);
+            this.ServerTab.Controls.Add(this.HostNameLabel);
+            this.ServerTab.Controls.Add(this.HostNameBox);
+            this.ServerTab.Controls.Add(this.Use64BitArmaButton);
+            this.ServerTab.Location = new System.Drawing.Point(4, 22);
+            this.ServerTab.Name = "ServerTab";
+            this.ServerTab.Padding = new System.Windows.Forms.Padding(3);
+            this.ServerTab.Size = new System.Drawing.Size(569, 686);
+            this.ServerTab.TabIndex = 1;
+            this.ServerTab.Text = "Server Settings";
+            this.ServerTab.UseVisualStyleBackColor = true;
+            // 
+            // DefaultConsoleLogButton
+            // 
+            this.DefaultConsoleLogButton.Location = new System.Drawing.Point(171, 228);
+            this.DefaultConsoleLogButton.Name = "DefaultConsoleLogButton";
+            this.DefaultConsoleLogButton.Size = new System.Drawing.Size(68, 20);
+            this.DefaultConsoleLogButton.TabIndex = 39;
+            this.DefaultConsoleLogButton.Text = "Default";
+            this.DefaultConsoleLogButton.UseVisualStyleBackColor = true;
+            this.DefaultConsoleLogButton.Click += new System.EventHandler(this.DefaultConsoleLogButton_Click);
+            // 
+            // GenerateCmdPasswordButton
+            // 
+            this.GenerateCmdPasswordButton.Location = new System.Drawing.Point(171, 193);
+            this.GenerateCmdPasswordButton.Name = "GenerateCmdPasswordButton";
+            this.GenerateCmdPasswordButton.Size = new System.Drawing.Size(68, 20);
+            this.GenerateCmdPasswordButton.TabIndex = 38;
+            this.GenerateCmdPasswordButton.Text = "Generate";
+            this.GenerateCmdPasswordButton.UseVisualStyleBackColor = true;
+            this.GenerateCmdPasswordButton.Click += new System.EventHandler(this.GenerateCmdPasswordButton_Click);
+            // 
+            // GenerateAdminPasswordButton
+            // 
+            this.GenerateAdminPasswordButton.Location = new System.Drawing.Point(171, 155);
+            this.GenerateAdminPasswordButton.Name = "GenerateAdminPasswordButton";
+            this.GenerateAdminPasswordButton.Size = new System.Drawing.Size(68, 20);
+            this.GenerateAdminPasswordButton.TabIndex = 37;
+            this.GenerateAdminPasswordButton.Text = "Generate";
+            this.GenerateAdminPasswordButton.UseVisualStyleBackColor = true;
+            this.GenerateAdminPasswordButton.Click += new System.EventHandler(this.GenerateAdminPasswordButton_Click);
+            // 
+            // GenerateServerPasswordButton
+            // 
+            this.GenerateServerPasswordButton.Location = new System.Drawing.Point(171, 116);
+            this.GenerateServerPasswordButton.Name = "GenerateServerPasswordButton";
+            this.GenerateServerPasswordButton.Size = new System.Drawing.Size(68, 20);
+            this.GenerateServerPasswordButton.TabIndex = 36;
+            this.GenerateServerPasswordButton.Text = "Generate";
+            this.GenerateServerPasswordButton.UseVisualStyleBackColor = true;
+            this.GenerateServerPasswordButton.Click += new System.EventHandler(this.GenerateServerPasswordButton_Click);
+            // 
+            // MotdIntervalLabel
+            // 
+            this.MotdIntervalLabel.AutoSize = true;
+            this.MotdIntervalLabel.Location = new System.Drawing.Point(506, 177);
+            this.MotdIntervalLabel.Name = "MotdIntervalLabel";
+            this.MotdIntervalLabel.Size = new System.Drawing.Size(45, 13);
+            this.MotdIntervalLabel.TabIndex = 35;
+            this.MotdIntervalLabel.Text = " Interval";
+            // 
+            // MotdIntervalBox
+            // 
+            this.MotdIntervalBox.Location = new System.Drawing.Point(509, 196);
+            this.MotdIntervalBox.Name = "MotdIntervalBox";
+            this.MotdIntervalBox.Size = new System.Drawing.Size(48, 20);
+            this.MotdIntervalBox.TabIndex = 34;
+            this.MotdIntervalBox.TextChanged += new System.EventHandler(this.MotdIntervalBox_TextChanged);
+            // 
+            // MotdRemoveButton
+            // 
+            this.MotdRemoveButton.Location = new System.Drawing.Point(254, 222);
+            this.MotdRemoveButton.Name = "MotdRemoveButton";
+            this.MotdRemoveButton.Size = new System.Drawing.Size(303, 20);
+            this.MotdRemoveButton.TabIndex = 33;
+            this.MotdRemoveButton.Text = "Remove Selected Message";
+            this.MotdRemoveButton.UseVisualStyleBackColor = true;
+            this.MotdRemoveButton.Click += new System.EventHandler(this.MotdRemoveButton_Click);
+            // 
+            // MotdAddButton
+            // 
+            this.MotdAddButton.Location = new System.Drawing.Point(254, 196);
+            this.MotdAddButton.Name = "MotdAddButton";
+            this.MotdAddButton.Size = new System.Drawing.Size(246, 20);
+            this.MotdAddButton.TabIndex = 32;
+            this.MotdAddButton.Text = "Add";
+            this.MotdAddButton.UseVisualStyleBackColor = true;
+            this.MotdAddButton.Click += new System.EventHandler(this.MotdAddButton_Click);
+            // 
+            // MotdAddBox
+            // 
+            this.MotdAddBox.Location = new System.Drawing.Point(254, 170);
+            this.MotdAddBox.Name = "MotdAddBox";
+            this.MotdAddBox.Size = new System.Drawing.Size(246, 20);
+            this.MotdAddBox.TabIndex = 31;
+            // 
+            // MotdBox
+            // 
+            this.MotdBox.FormattingEnabled = true;
+            this.MotdBox.Location = new System.Drawing.Point(254, 69);
+            this.MotdBox.Name = "MotdBox";
+            this.MotdBox.Size = new System.Drawing.Size(303, 95);
+            this.MotdBox.TabIndex = 30;
+            // 
+            // MotdLabel
+            // 
+            this.MotdLabel.AutoSize = true;
+            this.MotdLabel.Location = new System.Drawing.Point(251, 53);
+            this.MotdLabel.Name = "MotdLabel";
+            this.MotdLabel.Size = new System.Drawing.Size(100, 13);
+            this.MotdLabel.TabIndex = 29;
+            this.MotdLabel.Text = "Message of the day";
+            // 
+            // ServerLogLabel
+            // 
+            this.ServerLogLabel.AutoSize = true;
+            this.ServerLogLabel.Location = new System.Drawing.Point(5, 213);
+            this.ServerLogLabel.Name = "ServerLogLabel";
+            this.ServerLogLabel.Size = new System.Drawing.Size(100, 13);
+            this.ServerLogLabel.TabIndex = 28;
+            this.ServerLogLabel.Text = "Server Console Log";
+            // 
+            // ServerLogBox
+            // 
+            this.ServerLogBox.Location = new System.Drawing.Point(8, 229);
+            this.ServerLogBox.Name = "ServerLogBox";
+            this.ServerLogBox.Size = new System.Drawing.Size(157, 20);
+            this.ServerLogBox.TabIndex = 27;
+            this.ServerLogBox.TextChanged += new System.EventHandler(this.ServerLogBox_TextChanged);
+            // 
+            // ServerCMDPasswordLabel
+            // 
+            this.ServerCMDPasswordLabel.AutoSize = true;
+            this.ServerCMDPasswordLabel.Location = new System.Drawing.Point(5, 177);
+            this.ServerCMDPasswordLabel.Name = "ServerCMDPasswordLabel";
+            this.ServerCMDPasswordLabel.Size = new System.Drawing.Size(103, 13);
+            this.ServerCMDPasswordLabel.TabIndex = 26;
+            this.ServerCMDPasswordLabel.Text = "Command Password";
+            // 
+            // ServerCMDPasswordBox
+            // 
+            this.ServerCMDPasswordBox.Location = new System.Drawing.Point(8, 193);
+            this.ServerCMDPasswordBox.Name = "ServerCMDPasswordBox";
+            this.ServerCMDPasswordBox.Size = new System.Drawing.Size(157, 20);
+            this.ServerCMDPasswordBox.TabIndex = 25;
+            this.ServerCMDPasswordBox.TextChanged += new System.EventHandler(this.ServerCMDPasswordBox_TextChanged);
+            // 
+            // AdminPasswordLLabel
+            // 
+            this.AdminPasswordLLabel.AutoSize = true;
+            this.AdminPasswordLLabel.Location = new System.Drawing.Point(5, 139);
+            this.AdminPasswordLLabel.Name = "AdminPasswordLLabel";
+            this.AdminPasswordLLabel.Size = new System.Drawing.Size(85, 13);
+            this.AdminPasswordLLabel.TabIndex = 24;
+            this.AdminPasswordLLabel.Text = "Admin Password";
+            // 
+            // AdminPasswordBox
+            // 
+            this.AdminPasswordBox.Location = new System.Drawing.Point(8, 155);
+            this.AdminPasswordBox.Name = "AdminPasswordBox";
+            this.AdminPasswordBox.Size = new System.Drawing.Size(157, 20);
+            this.AdminPasswordBox.TabIndex = 23;
+            this.AdminPasswordBox.TextChanged += new System.EventHandler(this.AdminPasswordBox_TextChanged);
+            // 
+            // ServerPasswordLabel
+            // 
+            this.ServerPasswordLabel.AutoSize = true;
+            this.ServerPasswordLabel.Location = new System.Drawing.Point(5, 100);
+            this.ServerPasswordLabel.Name = "ServerPasswordLabel";
+            this.ServerPasswordLabel.Size = new System.Drawing.Size(87, 13);
+            this.ServerPasswordLabel.TabIndex = 22;
+            this.ServerPasswordLabel.Text = "Server Password";
+            // 
+            // ServerPasswordBox
+            // 
+            this.ServerPasswordBox.Location = new System.Drawing.Point(8, 116);
+            this.ServerPasswordBox.Name = "ServerPasswordBox";
+            this.ServerPasswordBox.Size = new System.Drawing.Size(157, 20);
+            this.ServerPasswordBox.TabIndex = 21;
+            this.ServerPasswordBox.TextChanged += new System.EventHandler(this.ServerPasswordBox_TextChanged);
+            // 
+            // ServerDirectoryLabel
+            // 
+            this.ServerDirectoryLabel.AutoSize = true;
+            this.ServerDirectoryLabel.Location = new System.Drawing.Point(5, 13);
+            this.ServerDirectoryLabel.Name = "ServerDirectoryLabel";
+            this.ServerDirectoryLabel.Size = new System.Drawing.Size(83, 13);
+            this.ServerDirectoryLabel.TabIndex = 20;
+            this.ServerDirectoryLabel.Text = "Server Directory";
+            // 
+            // ServerDirectoryPathBox
+            // 
+            this.ServerDirectoryPathBox.Location = new System.Drawing.Point(8, 29);
+            this.ServerDirectoryPathBox.Name = "ServerDirectoryPathBox";
+            this.ServerDirectoryPathBox.Size = new System.Drawing.Size(370, 20);
+            this.ServerDirectoryPathBox.TabIndex = 18;
+            this.ServerDirectoryPathBox.TextChanged += new System.EventHandler(this.ServerDirectoryPathBox_TextChanged);
+            // 
+            // BrowseServerDirectory
+            // 
+            this.BrowseServerDirectory.Location = new System.Drawing.Point(384, 29);
+            this.BrowseServerDirectory.Name = "BrowseServerDirectory";
+            this.BrowseServerDirectory.Size = new System.Drawing.Size(86, 20);
+            this.BrowseServerDirectory.TabIndex = 19;
+            this.BrowseServerDirectory.Text = "Browse";
+            this.BrowseServerDirectory.UseVisualStyleBackColor = true;
+            this.BrowseServerDirectory.Click += new System.EventHandler(this.BrowseServerDirectory_Click);
+            // 
+            // HostNameLabel
+            // 
+            this.HostNameLabel.AutoSize = true;
+            this.HostNameLabel.Location = new System.Drawing.Point(5, 61);
+            this.HostNameLabel.Name = "HostNameLabel";
+            this.HostNameLabel.Size = new System.Drawing.Size(60, 13);
+            this.HostNameLabel.TabIndex = 17;
+            this.HostNameLabel.Text = "Host Name";
+            // 
+            // HostNameBox
+            // 
+            this.HostNameBox.Location = new System.Drawing.Point(8, 77);
+            this.HostNameBox.Name = "HostNameBox";
+            this.HostNameBox.Size = new System.Drawing.Size(157, 20);
+            this.HostNameBox.TabIndex = 16;
+            this.HostNameBox.TextChanged += new System.EventHandler(this.HostNameBox_TextChanged);
+            // 
+            // Use64BitArmaButton
+            // 
+            this.Use64BitArmaButton.AutoSize = true;
+            this.Use64BitArmaButton.Location = new System.Drawing.Point(480, 32);
+            this.Use64BitArmaButton.Name = "Use64BitArmaButton";
+            this.Use64BitArmaButton.Size = new System.Drawing.Size(74, 17);
+            this.Use64BitArmaButton.TabIndex = 15;
+            this.Use64BitArmaButton.Text = "64Bit EXE";
+            this.Use64BitArmaButton.UseVisualStyleBackColor = true;
+            this.Use64BitArmaButton.CheckedChanged += new System.EventHandler(this.Use64BitArmaButton_CheckedChanged);
+            // 
             // Home
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(539, 689);
-            this.Controls.Add(this.panel2);
-            this.Controls.Add(this.RemovePboButton);
-            this.Controls.Add(this.AddPboTabButton);
-            this.Controls.Add(this.panel1);
-            this.Controls.Add(this.PboFileBox);
-            this.Controls.Add(this.Use64BitArmaButton);
-            this.Controls.Add(this.LaunchButton);
-            this.Controls.Add(this.VarLengthLabel);
-            this.Controls.Add(this.FncLengthLabel);
-            this.Controls.Add(this.VarLengthCombo);
-            this.Controls.Add(this.FncLengthCombo);
-            this.Controls.Add(this.FncTagLabel);
-            this.Controls.Add(this.FncTagBox);
-            this.Controls.Add(this.ServerDirectoryLabel);
-            this.Controls.Add(this.GitDirectoryLabel);
-            this.Controls.Add(this.BrowseGitDirectory);
-            this.Controls.Add(this.GitDirectoryPathBox);
-            this.Controls.Add(this.BrowseServerDirectory);
-            this.Controls.Add(this.ServerDirectoryPathBox);
-            this.Controls.Add(this.KillArmaCheckBox);
+            this.BackColor = System.Drawing.Color.White;
+            this.ClientSize = new System.Drawing.Size(575, 711);
+            this.Controls.Add(this.Pages);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.MinimumSize = new System.Drawing.Size(555, 728);
             this.Name = "Home";
@@ -679,20 +933,19 @@
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            this.Pages.ResumeLayout(false);
+            this.MainTab.ResumeLayout(false);
+            this.MainTab.PerformLayout();
+            this.ServerTab.ResumeLayout(false);
+            this.ServerTab.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.CheckBox KillArmaCheckBox;
-        private System.Windows.Forms.TextBox ServerDirectoryPathBox;
-        private System.Windows.Forms.Button BrowseServerDirectory;
         private System.Windows.Forms.Button BrowseGitDirectory;
         private System.Windows.Forms.TextBox GitDirectoryPathBox;
         private System.Windows.Forms.Label GitDirectoryLabel;
-        private System.Windows.Forms.Label ServerDirectoryLabel;
         private System.Windows.Forms.Label FncTagLabel;
         private System.Windows.Forms.TextBox FncTagBox;
         private System.Windows.Forms.ComboBox FncLengthCombo;
@@ -700,7 +953,6 @@
         private System.Windows.Forms.Label FncLengthLabel;
         private System.Windows.Forms.Label VarLengthLabel;
         private System.Windows.Forms.Button LaunchButton;
-        private System.Windows.Forms.CheckBox Use64BitArmaButton;
         private System.Windows.Forms.TabPage PboStartTab;
         private System.Windows.Forms.TabControl PboFileBox;
         private System.Windows.Forms.Panel panel1;
@@ -739,6 +991,34 @@
         private System.Windows.Forms.TextBox LocalVariablesListAddBox;
         private System.Windows.Forms.Label LocalVariablesListLabel;
         private System.Windows.Forms.ListBox LocalVariablesListBox;
+        private System.Windows.Forms.TabControl Pages;
+        private System.Windows.Forms.TabPage MainTab;
+        private System.Windows.Forms.TabPage ServerTab;
+        private System.Windows.Forms.CheckBox Use64BitArmaButton;
+        private System.Windows.Forms.Label HostNameLabel;
+        private System.Windows.Forms.TextBox HostNameBox;
+        private System.Windows.Forms.Label ServerDirectoryLabel;
+        private System.Windows.Forms.TextBox ServerDirectoryPathBox;
+        private System.Windows.Forms.Button BrowseServerDirectory;
+        private System.Windows.Forms.Label ServerPasswordLabel;
+        private System.Windows.Forms.TextBox ServerPasswordBox;
+        private System.Windows.Forms.Label ServerCMDPasswordLabel;
+        private System.Windows.Forms.TextBox ServerCMDPasswordBox;
+        private System.Windows.Forms.Label AdminPasswordLLabel;
+        private System.Windows.Forms.TextBox AdminPasswordBox;
+        private System.Windows.Forms.Label ServerLogLabel;
+        private System.Windows.Forms.TextBox ServerLogBox;
+        private System.Windows.Forms.Button MotdRemoveButton;
+        private System.Windows.Forms.Button MotdAddButton;
+        private System.Windows.Forms.TextBox MotdAddBox;
+        private System.Windows.Forms.ListBox MotdBox;
+        private System.Windows.Forms.Label MotdLabel;
+        private System.Windows.Forms.Label MotdIntervalLabel;
+        private System.Windows.Forms.TextBox MotdIntervalBox;
+        private System.Windows.Forms.Button DefaultConsoleLogButton;
+        private System.Windows.Forms.Button GenerateCmdPasswordButton;
+        private System.Windows.Forms.Button GenerateAdminPasswordButton;
+        private System.Windows.Forms.Button GenerateServerPasswordButton;
     }
 }
 

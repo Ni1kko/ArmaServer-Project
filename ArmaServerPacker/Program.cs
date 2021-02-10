@@ -15,9 +15,10 @@ namespace ArmaServerFrontend
         [STAThread]
         private static void Main()
         {
-            if (DLL.ConfigFunctions.Load()){
+            if (DLL.ConfigFunctions.Load())
+            {
                 Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false); 
+                Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new Home());
             }
             else

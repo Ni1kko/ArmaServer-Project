@@ -16,12 +16,94 @@ namespace ArmaServerBackend
         private static Random random = new Random();
         private static List<string> pulledGits = new List<string>();
 
+        /// <summary>
+        /// Opens Folder Path Dialog and returns selected folder path
+        /// </summary>
+        /// <returns></returns>
         public string GetFolderPathDialog()
         {
             using (var folderBrowserDialog = new FolderBrowserDialog())
             { 
                 return (folderBrowserDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath)) ? folderBrowserDialog.SelectedPath : "";
             }
+        }
+        
+        /// <summary>
+        /// Add new string to list box
+        /// </summary>
+        /// <param name="listBox"></param>
+        /// <param name="newVar"></param>
+        /// <returns></returns>
+        public List<string> AddListBoxValue(ListBox listBox, string newVar)
+        {
+            List<string> varsInBox = new List<string>(); 
+            if (newVar == "") return varsInBox;
+            listBox.Items.Add(newVar);
+            foreach (string item in listBox.Items) varsInBox.Add(item);
+            return varsInBox;
+        }
+
+        /// <summary>
+        /// Add new string to list box from a listbox
+        /// </summary>
+        /// <param name="listBox"></param>
+        /// <param name="textBox"></param>
+        /// <returns></returns>
+        public List<string> AddListBoxValue(ListBox listBox, TextBox textBox)
+        {
+            string text = textBox.Text;
+            if (text == "") return new List<string>();
+            textBox.Text = "";
+            return AddListBoxValue(listBox, text);
+        }
+
+        /// <summary>
+        /// Add new listarray of strings to list box
+        /// </summary>
+        /// <param name="listBox"></param>
+        /// <param name="strings"></param>
+        public void AddListBoxValue(ListBox listBox, List<string> strings)
+        {
+            foreach (string str in strings) AddListBoxValue(listBox, str);
+        }
+
+        /// <summary>
+        /// Removes an item from given index if none given it will remove the user selected one
+        /// </summary>
+        /// <param name="listBox"></param>
+        /// <param name="SelectedItem"></param>
+        /// <returns></returns>
+        public List<string> RemoveListBoxValue(ListBox listBox, int SelectedItem = -1)
+        {
+            if (SelectedItem < 0) SelectedItem = listBox.SelectedIndex;
+            listBox.Items.RemoveAt(SelectedItem);
+            List<string> InBox = new List<string>();
+            foreach (string item in listBox.Items) InBox.Add(item);
+            return InBox;
+        }
+
+        /// <summary>
+        /// Checks to see if string contains a charater
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public bool StringContainsChar(string text)
+        {
+            List<string> letters = new List<string>() { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
+            foreach (string _char in letters) if (text.ToLower().Contains(_char)) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Checks to see if string contains a number
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public bool StringContainsNumber(string text)
+        {
+            List<string> numbers = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+            foreach (string _char in numbers) if (text.Contains(_char)) return true;
+            return false;
         }
 
         internal static bool GitDownload(PboFiles pbo)
@@ -41,12 +123,12 @@ namespace ArmaServerBackend
 
                 using (var webClient = new WebClient())
                 {
-                    if (pbo.GitType == 1)
+                    if (pbo.GitServer == GitServer.GitHub)
                     {
                         webClient.Headers.Add("Authorization", "token " + token);
                         Console.WriteLine($"{pbo.Name} using GitHub");
                     }
-                    else if (pbo.GitType == 2)
+                    else if (pbo.GitServer == GitServer.GitLab)
                     {
                         webClient.Headers.Add("Private-Token", token);
                         Console.WriteLine($"{pbo.Name} using GitLab");
@@ -62,7 +144,7 @@ namespace ArmaServerBackend
                 Directory.CreateDirectory(DLL.ConfigValues.GitDirectory);
 
                 // very dirty hack for gitlab stupid file bullshit
-                if (pbo.GitType == 2)
+                if (pbo.GitServer == GitServer.GitLab)
                 {
 
                     using (ZipArchive archive = ZipFile.OpenRead(gitPath))
@@ -155,6 +237,16 @@ namespace ArmaServerBackend
             }
         }
 
+        internal static string NewLine(int numOfLines = 1)
+        {
+            var newLines = "";
+            for (var i = 0; i < numOfLines; i++)
+            {
+                newLines += Environment.NewLine;
+            }
+            return newLines;
+        }
+
         private static string RemoveComments(string source)
         {
             var blockComments = @"/\*(.*?)\*/";
@@ -162,7 +254,7 @@ namespace ArmaServerBackend
             var strings = @"""((\\[^\n]|[^""\n])*)""";
             var verbatimStrings = @"@(""[^""]*"")+";
             string noComments = Regex.Replace(source, blockComments + "|" + lineComments + "|" + strings + "|" + verbatimStrings, line => {
-                if (line.Value.StartsWith("/*") || line.Value.StartsWith("//")) return line.Value.StartsWith("//") ? Environment.NewLine : "";
+                if (line.Value.StartsWith("/*") || line.Value.StartsWith("//")) return line.Value.StartsWith("//") ? NewLine() : "";
                 return line.Value;// Keep the literal strings
             }, RegexOptions.Singleline);
 
@@ -180,12 +272,18 @@ namespace ArmaServerBackend
             }
             return contents;
         }
-        
-        internal static string RandomString(int length)
+
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstvwxyz";
+        private static string CreateRandomString(string character, int length) => new string(Enumerable.Repeat(character, length).Select(s => s[random.Next(s.Length)]).ToArray());
+
+        public string RandomString(int length) => CreateRandomString(chars, length);
+         
+        public string RandomVariable(int length)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstvwxyz";
-            return new string(Enumerable.Repeat(chars, length)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
+            string variable = RandomString(1);
+            variable += CreateRandomString(string.Format("{0}_0123456789", chars), length);
+            if (variable.EndsWith("_")) variable = variable.TrimEnd('_');
+            return variable;
         }
 
         internal static void RandomizeEverything(PboFiles pbo)
@@ -202,9 +300,9 @@ namespace ArmaServerBackend
 
                 string contents = File.ReadAllText(outName);
 
-                if (pbo.RenameGlobalVars) contents = RenameVars(contents, DLL._globalVars);
-                if (pbo.RenameLocalVars) contents = RenameVars(contents, DLL._localVars);
-                if (pbo.RenameFuncs) 
+                if (pbo.RandomizeGlobalVariables) contents = RenameVars(contents, DLL._globalVars);
+                if (pbo.RandomizeLocalVariables) contents = RenameVars(contents, DLL._localVars);
+                if (pbo.RandomizeFunctions) 
                 {
                     foreach (KeyValuePair<string, string> var in DLL._scriptFuncs)
                     {
@@ -217,7 +315,7 @@ namespace ArmaServerBackend
                     }
                 }
 
-                if (pbo.OneLine && file.EndsWith(".sqf")) contents = OneLine(contents);
+                if (pbo.SingleLineFunctions && file.EndsWith(".sqf")) contents = OneLine(contents);
 
                 File.WriteAllText(file, contents);
                 if (file != outName) File.Move(file, outName);

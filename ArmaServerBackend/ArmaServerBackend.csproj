@@ -72,6 +72,7 @@
     <Compile Include="Config\Classes\PboFiles.cs" />
     <Compile Include="Config\Classes\Settings.cs" />
     <Compile Include="Config\Config.cs" />
+    <Compile Include="Enums\GitServer.cs" />
     <Compile Include="DLL.cs" />
     <Compile Include="Embedded\Embedded.cs" />
     <Compile Include="Misc\Helpers.cs" />
@@ -82,10 +83,13 @@
     <Compile Include="Misc\Pbo\PboResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Misc\Utilities.cs" />
+    <Compile Include="Config\Classes\ServerBasicSettings.cs" />
+    <Compile Include="Config\Classes\ServerSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Embedded\Newtonsoft.Json.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" Eazfuscator.NET.exe "$(TargetPath)" --msbuild-project-path "$(ProjectPath)" --msbuild-project-configuration "$(ConfigurationName)" --msbuild-project-platform "$(PlatformName)" --msbuild-solution-path "$(SolutionPath)" -n --newline-flush -v 2018.2</PostBuildEvent>

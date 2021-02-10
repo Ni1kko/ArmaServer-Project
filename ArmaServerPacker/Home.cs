@@ -6,27 +6,33 @@ using ArmaServerBackend;
 
 namespace ArmaServerFrontend
 {
-    public partial class Home : Form
+    internal partial class Home : Form
     {
-        bool preloaded = false;
+        private bool preloaded = false;
 
-        public Home() => PreLoadWindow();
-
-        private void PreLoadWindow()
-        {
+        public Home() {
             InitializeComponent();
-            ServerDirectoryPathBox.Text = DLL.ConfigValues.ServerDirectory;
+            PreLoadHomeTabWindow();
+            PreLoadServerTabWindow();
+            preloaded = true;
+        }
+         
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Home TAB
+        /// </summary> 
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        private void PreLoadHomeTabWindow()
+        { 
             GitDirectoryPathBox.Text = DLL.ConfigValues.GitDirectory;
-            FncTagBox.Text = DLL.ConfigValues.FunctionsTag;
-            KillArmaCheckBox.Checked = DLL.ConfigValues.KillArmaServer;
-            Use64BitArmaButton.Checked = DLL.ConfigValues.Use64BitServer;
-
+            
             //Randomize
-            FncLengthCombo.SelectedIndex = (DLL.ConfigValues.RandomFuncsLength - 1);
-            VarLengthCombo.SelectedIndex = (DLL.ConfigValues.RandomVarsLength - 1);
-            LoadRandomListBoxes(0, DLL.ConfigValues.ObfFunctions);
-            LoadRandomListBoxes(1, DLL.ConfigValues.ObfGlobalVars);
-            LoadRandomListBoxes(2, DLL.ConfigValues.ObfLocalVars);
+            FncTagBox.Text = DLL.ConfigValues.FunctionsTag;
+            FncLengthCombo.SelectedIndex = (DLL.ConfigValues.RandomFunctionsLength - 1);
+            VarLengthCombo.SelectedIndex = (DLL.ConfigValues.RandomVariablesLength - 1);
+            DLL.HelperFunctions.AddListBoxValue(FunctionsListBox, DLL.ConfigValues.Functions);
+            DLL.HelperFunctions.AddListBoxValue(GlobalVariablesListBox, DLL.ConfigValues.GlobalVariables);
+            DLL.HelperFunctions.AddListBoxValue(LocalVariablesListBox, DLL.ConfigValues.LocalVaribales);
 
             //Pbos
             int pboListCount = 0;
@@ -37,24 +43,9 @@ namespace ArmaServerFrontend
                 pboListCount += 1;
             }
             PboFileBox.TabPages.Remove(PboStartTab);
-
-            preloaded = true;
         }
 
-        /// <summary>
-        /// ServerDirectory
-        /// </summary>
-        private void BrowseServerDirectory_Click(object sender, EventArgs e) => ServerDirectoryPathBox.Text = DLL.HelperFunctions.GetFolderPathDialog();
-        private void ServerDirectoryPathBox_TextChanged(object sender, EventArgs e)
-        {
-            if (!preloaded) return; 
-            DLL.ConfigValues.ServerDirectory = ServerDirectoryPathBox.Text;
-            DLL.ConfigFunctions.Save();
-        }
-
-        /// <summary>
         /// GitDirectory
-        /// </summary>
         private void BrowseGitDirectory_Click(object sender, EventArgs e) => GitDirectoryPathBox.Text = DLL.HelperFunctions.GetFolderPathDialog();
         private void GitDirectoryPathBox_TextChanged(object sender, EventArgs e)
         {
@@ -64,60 +55,19 @@ namespace ArmaServerFrontend
                 DLL.ConfigFunctions.Save();
             }
         }
-
-        /// <summary>
-        /// Stop arma process
-        /// </summary>
-        private void KillArmaCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (preloaded)
-            {
-                DLL.ConfigValues.KillArmaServer = KillArmaCheckBox.Checked;
-                DLL.ConfigFunctions.Save();
-            }
-        }
-
-        /// <summary>
-        /// 64/32 Bit arma process
-        /// </summary>
-        private void Use64BitArmaButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (preloaded)
-            {
-                DLL.ConfigValues.Use64BitServer = Use64BitArmaButton.Checked;
-                DLL.ConfigFunctions.Save();
-            }
-        }
-
-        /// <summary>
+         
         /// Randomize
-        /// </summary>
-        private void LoadRandomListBoxes(int box, List<string> vars)
-        {
-            foreach (string var in vars)
-            {
-                switch (box)
-                {
-                    case 0: FunctionsListBox.Items.Add(var); break;
-                    case 1: GlobalVariablesListBox.Items.Add(var); break;
-                    case 2: LocalVariablesListBox.Items.Add(var); break;
-                    default: break;
-                }
-            }
-        } 
         private void FncTagBox_TextChanged(object sender, EventArgs e)
         {
-            if (preloaded)
-            {
-                DLL.ConfigValues.FunctionsTag = FncTagBox.Text;
-                DLL.ConfigFunctions.Save();
-            }
+            if (!preloaded) return;
+            DLL.ConfigValues.FunctionsTag = FncTagBox.Text;
+            DLL.ConfigFunctions.Save();
         }
         private void FncLengthCombo_SelectedValueChanged(object sender, EventArgs e)
         {
             if (preloaded)
             {
-                DLL.ConfigValues.RandomFuncsLength = (FncLengthCombo.SelectedIndex + 1);
+                DLL.ConfigValues.RandomFunctionsLength = (FncLengthCombo.SelectedIndex + 1);
                 DLL.ConfigFunctions.Save();
             }
         }
@@ -125,71 +75,45 @@ namespace ArmaServerFrontend
         {
             if (preloaded)
             {
-                DLL.ConfigValues.RandomVarsLength = (VarLengthCombo.SelectedIndex + 1);
+                DLL.ConfigValues.RandomVariablesLength = (VarLengthCombo.SelectedIndex + 1);
                 DLL.ConfigFunctions.Save();
             }
         }
         private void FunctionsListAddButton_Click(object sender, EventArgs e)
-        {
-            string newVar = FunctionsListAddBox.Text;
-            if (newVar == "") return;
-            FunctionsListBox.Items.Add(newVar);
-            FunctionsListAddBox.Text = "";
-            List<string> varsInBox = new List<string>();
-            foreach (string item in FunctionsListBox.Items) varsInBox.Add(item);
-            DLL.ConfigValues.ObfFunctions = varsInBox;
+        { 
+            if (FunctionsListAddBox.Text == "") return; 
+            DLL.ConfigValues.Functions = DLL.HelperFunctions.AddListBoxValue(FunctionsListBox, FunctionsListAddBox);
             DLL.ConfigFunctions.Save();
         }
         private void RemoveSelectedFunctionButton_Click(object sender, EventArgs e)
         {
-            FunctionsListBox.Items.Remove(FunctionsListBox.SelectedItem);
-            List<string> varsInBox = new List<string>();
-            foreach (string item in FunctionsListBox.Items) varsInBox.Add(item);
-            DLL.ConfigValues.ObfFunctions = varsInBox;
+            DLL.ConfigValues.Functions = DLL.HelperFunctions.RemoveListBoxValue(FunctionsListBox);
             DLL.ConfigFunctions.Save();
         }
         private void GlobalVariablesListAddButton_Click(object sender, EventArgs e)
-        {
-            string newVar = GlobalVariablesListAddBox.Text;
-            if (newVar == "") return;
-            GlobalVariablesListBox.Items.Add(newVar);
-            GlobalVariablesListAddBox.Text = "";
-            List<string> varsInBox = new List<string>();
-            foreach (string item in GlobalVariablesListBox.Items) varsInBox.Add(item);
-            DLL.ConfigValues.ObfGlobalVars = varsInBox;
+        { 
+            if (GlobalVariablesListAddBox.Text == "") return; 
+            DLL.ConfigValues.GlobalVariables = DLL.HelperFunctions.AddListBoxValue(GlobalVariablesListBox, GlobalVariablesListAddBox);
             DLL.ConfigFunctions.Save();
         }
         private void GlobalRemoveSelectedVariableButton_Click(object sender, EventArgs e)
-        {
-            GlobalVariablesListBox.Items.Remove(GlobalVariablesListBox.SelectedItem);
-            List<string> varsInBox = new List<string>();
-            foreach (string item in GlobalVariablesListBox.Items) varsInBox.Add(item);
-            DLL.ConfigValues.ObfGlobalVars = varsInBox;
+        { 
+            DLL.ConfigValues.GlobalVariables = DLL.HelperFunctions.RemoveListBoxValue(GlobalVariablesListBox);
             DLL.ConfigFunctions.Save();
         }
         private void LocalVariablesListAddButton_Click(object sender, EventArgs e)
-        {
-            string newVar = LocalVariablesListAddBox.Text;
-            if (newVar == "") return;
-            LocalVariablesListBox.Items.Add(newVar);
-            LocalVariablesListAddBox.Text = "";
-            List<string> varsInBox = new List<string>();
-            foreach (string item in LocalVariablesListBox.Items) varsInBox.Add(item);
-            DLL.ConfigValues.ObfLocalVars = varsInBox;
+        { 
+            if (LocalVariablesListAddBox.Text == "") return;
+            DLL.ConfigValues.LocalVaribales = DLL.HelperFunctions.AddListBoxValue(LocalVariablesListBox, LocalVariablesListAddBox);
             DLL.ConfigFunctions.Save();
         }
         private void LocalRemoveSelectedVariableButton_Click(object sender, EventArgs e)
-        {
-            LocalVariablesListBox.Items.Remove(LocalVariablesListBox.SelectedItem);
-            List<string> varsInBox = new List<string>();
-            foreach (string item in LocalVariablesListBox.Items) varsInBox.Add(item);
-            DLL.ConfigValues.ObfLocalVars = varsInBox;
+        { 
+            DLL.ConfigValues.LocalVaribales = DLL.HelperFunctions.RemoveListBoxValue(LocalVariablesListBox);
             DLL.ConfigFunctions.Save();
         }
 
-        /// <summary>
         /// PBO setup
-        /// </summary>
         private int lastSelectedPbo = 0;
         private Dictionary<int, PboFiles> pboList = new Dictionary<int, PboFiles>();
         private void NewPboTab(PboFiles newPboValues)
@@ -219,16 +143,17 @@ namespace ArmaServerFrontend
         }
         private void LoadPboContols(PboFiles pboValues)
         {
+            if (!preloaded) GitTypeCombo.SelectedIndex += 1;
             PboNameBox.Text = pboValues.Name;
             GitPathBox.Text = pboValues.GitBranch;
             GitUrlBox.Text = pboValues.GitUrl;
             GitTokenBox.Text = pboValues.GitToken;
-            GitTypeCombo.SelectedIndex = (pboValues.GitType - 1);
+            GitTypeCombo.SelectedIndex = (int)Enum.ToObject(typeof(GitServer), GitTypeCombo.SelectedIndex);
             PboServerPathBox.Text = pboValues.ServerPath;
-            OneLineButton.Checked = pboValues.OneLine;
-            RenameFuncsButton.Checked = pboValues.RenameFuncs;
-            RenameGlobalVarsButton.Checked = pboValues.RenameGlobalVars;
-            RenameLocalVarsButton.Checked = pboValues.RenameLocalVars;
+            OneLineButton.Checked = pboValues.SingleLineFunctions;
+            RenameFuncsButton.Checked = pboValues.RandomizeFunctions;
+            RenameGlobalVarsButton.Checked = pboValues.RandomizeGlobalVariables;
+            RenameLocalVarsButton.Checked = pboValues.RandomizeLocalVariables;
         }
         private void UpdatePbos()
         {
@@ -247,12 +172,12 @@ namespace ArmaServerFrontend
                         GitBranch = GitPathBox.Text,
                         GitUrl = GitUrlBox.Text,
                         GitToken = GitTokenBox.Text,
-                        GitType = (int)(GitType)Enum.ToObject(typeof(GitType), (GitTypeCombo.SelectedIndex + 1)),
+                        GitServer = (GitServer)Enum.ToObject(typeof(GitServer), (GitTypeCombo.SelectedIndex + 1)),
                         ServerPath = PboServerPathBox.Text,
-                        OneLine = OneLineButton.Checked,
-                        RenameFuncs = RenameFuncsButton.Checked,
-                        RenameGlobalVars = RenameGlobalVarsButton.Checked,
-                        RenameLocalVars = RenameLocalVarsButton.Checked
+                        SingleLineFunctions = OneLineButton.Checked,
+                        RandomizeFunctions = RenameFuncsButton.Checked,
+                        RandomizeGlobalVariables = RenameGlobalVarsButton.Checked,
+                        RandomizeLocalVariables = RenameLocalVarsButton.Checked
                     };
 
                     pboList[pbo.Key] = PboFileUpdated;
@@ -312,11 +237,144 @@ namespace ArmaServerFrontend
         private void RenameGlobalVarsButton_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
         private void RenameLocalVarsButton_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
 
-
-
-        /// <summary>
         /// Launch
-        /// </summary>
         private void LaunchButton_Click(object sender, EventArgs e) => Program.BackendDLL.LaunchServer();
-    }   
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Server TAB
+        /// </summary> 
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        private void PreLoadServerTabWindow()
+        {
+            ServerDirectoryPathBox.Text = DLL.ConfigValues.serverSettings.ServerDirectory;
+            Use64BitArmaButton.Checked = DLL.ConfigValues.serverSettings.X64Architecture;
+            HostNameBox.Text = DLL.ConfigValues.serverSettings.hostName;
+            ServerPasswordBox.Text = DLL.ConfigValues.serverSettings.password;
+            AdminPasswordBox.Text = DLL.ConfigValues.serverSettings.passwordAdmin;
+            ServerCMDPasswordBox.Text = DLL.ConfigValues.serverSettings.serverCommandPassword;
+            ServerLogBox.Text = DLL.ConfigValues.serverSettings.logFile;
+            DLL.HelperFunctions.AddListBoxValue(MotdBox, DLL.ConfigValues.serverSettings.motd);
+            MotdIntervalBox.Text = DLL.ConfigValues.serverSettings.motdInterval.ToString();
+        }
+
+        // ServerDirectory
+        private void BrowseServerDirectory_Click(object sender, EventArgs e) => ServerDirectoryPathBox.Text = DLL.HelperFunctions.GetFolderPathDialog();
+        private void ServerDirectoryPathBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.ServerDirectory = ServerDirectoryPathBox.Text;
+            DLL.ConfigFunctions.Save();
+        }
+
+        //64Bit arma process
+        private void Use64BitArmaButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.X64Architecture = Use64BitArmaButton.Checked;
+            DLL.ConfigFunctions.Save();
+        }
+
+        //HostName
+        private void HostNameBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.hostName = HostNameBox.Text;
+            DLL.ConfigFunctions.Save();
+        }
+        
+        //ServerPassword 
+        private void ServerPasswordBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.password = ServerPasswordBox.Text;
+            DLL.ConfigFunctions.Save();
+        }
+        private void GenerateServerPasswordButton_Click(object sender, EventArgs e) => ServerPasswordBox.Text = DLL.HelperFunctions.RandomString(5);
+
+        //AdminPassword
+        private void AdminPasswordBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.passwordAdmin = AdminPasswordBox.Text;
+            DLL.ConfigFunctions.Save();
+        }
+        private void GenerateAdminPasswordButton_Click(object sender, EventArgs e) => AdminPasswordBox.Text = DLL.HelperFunctions.RandomString(7);
+
+        //Command password
+        private void ServerCMDPasswordBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.serverCommandPassword = ServerCMDPasswordBox.Text;
+            DLL.ConfigFunctions.Save();
+        }
+        private void GenerateCmdPasswordButton_Click(object sender, EventArgs e) => ServerCMDPasswordBox.Text = DLL.HelperFunctions.RandomVariable(8);
+    
+        //console log
+        private void ServerLogBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.logFile = ServerLogBox.Text;
+            DLL.ConfigFunctions.Save();
+        }
+        private void DefaultConsoleLogButton_Click(object sender, EventArgs e) => ServerLogBox.Text = ServerSettingsDefault.consoleLogFile;
+    
+        //Message of the day
+        private void MotdAddButton_Click(object sender, EventArgs e)
+        { 
+            if (MotdAddBox.Text == "") return;
+            DLL.ConfigValues.serverSettings.motd = DLL.HelperFunctions.AddListBoxValue(MotdBox, MotdAddBox);
+            DLL.ConfigFunctions.Save();
+        } 
+        private void MotdRemoveButton_Click(object sender, EventArgs e)
+        { 
+            DLL.ConfigValues.serverSettings.motd = DLL.HelperFunctions.RemoveListBoxValue(MotdBox);
+            DLL.ConfigFunctions.Save();
+        }
+        private void MotdIntervalBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+
+            //empty string, reset and update
+            if (MotdIntervalBox.Text == "")
+            {
+                MotdIntervalBox.Text = "0"; 
+                DLL.ConfigValues.serverSettings.motdInterval = 0;
+                DLL.ConfigFunctions.Save();
+                return;
+            }
+            
+            string oldValue = DLL.ConfigValues.serverSettings.motdInterval.ToString();//old value converted to a string
+
+            //Has char in string
+            if (DLL.HelperFunctions.StringContainsChar(MotdIntervalBox.Text))
+            {
+                MotdIntervalBox.Text = oldValue;
+                MessageBox.Show("Enter a numeric value only!");
+                return;
+            }
+
+            int motdInterval = int.Parse(MotdIntervalBox.Text);//convert to int
+            int maxInterval = 999999;
+
+            //Nope not that large
+            if (motdInterval > maxInterval)
+            {
+                MotdIntervalBox.Text = oldValue;
+                MessageBox.Show($"Enter a value below {maxInterval}!");
+                return;
+            } 
+
+            //update
+            DLL.ConfigValues.serverSettings.motdInterval = motdInterval;
+            DLL.ConfigFunctions.Save();
+        }
+
+        
+
+
+
+        //
+
+    }
 }

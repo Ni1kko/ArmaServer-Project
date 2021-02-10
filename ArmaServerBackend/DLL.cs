@@ -27,7 +27,7 @@ namespace ArmaServerBackend
         //Download, Randomize & Pack everything
         public bool LaunchServer()
         {
-            string procName = (ConfigValues.Use64BitServer ? "arma3server_x64.exe" : "arma3server.exe");
+            string procName = (ConfigValues.serverSettings.X64Architecture ? "arma3server_x64.exe" : "arma3server.exe");
 
             //purge directory if exists and create new
             try
@@ -42,35 +42,41 @@ namespace ArmaServerBackend
             }
 
             //Kill arma3 process
-            if (ConfigValues.KillArmaServer)
-            {
-                Console.WriteLine($"Stoping {procName}");
-                Helpers.EndTask(procName);
-            }
+            Console.WriteLine($"Stoping {procName}");
+            Helpers.EndTask(procName);
+             
 
             //Timeout 
             Thread.Sleep(2000);
 
-            //Create random local vars
-            foreach (string varToChange in ConfigValues.ObfLocalVars)
+            //Create Configs
+            //if (ConfigFunctions.CreateA3ConfigFile(ConfigValues, 0) && ConfigFunctions.CreateA3ConfigFile(ConfigValues, 1))
+            
+            foreach (int index in new List<int> {0,1})
             {
-                string newVar = "_" + Helpers.RandomString(ConfigValues.RandomVarsLength);
+                ConfigFunctions.CreateA3ConfigFile(ConfigValues, index);
+            }
+
+            //Create random local vars
+            foreach (string varToChange in ConfigValues.LocalVaribales)
+            {
+                string newVar = "_" + HelperFunctions.RandomVariable(ConfigValues.RandomVariablesLength);
                 _localVars[varToChange] = newVar;
                 File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
             }
 
             //Create random global vars
-            foreach (string varToChange in ConfigValues.ObfGlobalVars)
+            foreach (string varToChange in ConfigValues.GlobalVariables)
             {
-                string newVar = Helpers.RandomString(ConfigValues.RandomVarsLength);
+                string newVar = HelperFunctions.RandomVariable(ConfigValues.RandomVariablesLength);
                 _globalVars[varToChange] = newVar;
                 File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
             }
 
             //Create random function vars
-            foreach (string varToChange in ConfigValues.ObfFunctions)
+            foreach (string varToChange in ConfigValues.Functions)
             {
-                string newVar = Helpers.RandomString(ConfigValues.RandomFuncsLength);
+                string newVar = HelperFunctions.RandomVariable(ConfigValues.RandomFunctionsLength);
                 _scriptFuncs[varToChange.Replace(ConfigValues.FunctionsTag + "_fnc_", "")] = newVar;
                 File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
             }
@@ -86,11 +92,11 @@ namespace ArmaServerBackend
 
             //Start Arma3 server 
             MessageBox.Show($"Starting {procName}");
-            Process.Start(ConfigValues.ServerDirectory + "/" + procName);
+            Process.Start(ConfigValues.serverSettings.ServerDirectory + "/" + procName);
 
             //Return
             return true;
+            
         }
-    
     }
 }
