@@ -24,9 +24,9 @@ namespace ArmaServerBackend
             BasicSetting = new ServerBasicSettingDefault().Values(),
             serverSettings = new ServerSettingsDefault().Values(serverDirectory,"Some Mission Name", missionName),
             Pbos = new List<PboFiles>() {
-                new PboFilesDefault().Values(missionName, $"{serverDirectory}\\mpmissions", true),
-                //new PboFilesDefault().Values("client_functions", "C:\\Arma3\\@ArmaServerCQCServer\\addons\\client_functions.pbo"),
-                //new PboFilesDefault().Values("server_functions", "C:\\Arma3\\@ArmaServerCQCServer\\addons\\server_functions.pbo")
+                new PboFilesDefault().Values(missionName, $"{serverDirectory}\\mpmissions", PboModType.Mission),
+                //new PboFilesDefault().Values("client_functions", $"{serverDirectory}\\addons", PboModType.ClientMod),
+                //new PboFilesDefault().Values("server_functions", $"{serverDirectory}\\addons", PboModType.ServerMod)
             },
             FunctionsTag = functionTag,
             Functions = new List<string>(),

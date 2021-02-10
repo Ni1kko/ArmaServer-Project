@@ -41,7 +41,8 @@
             this.PboStartTab = new System.Windows.Forms.TabPage();
             this.PboFileBox = new System.Windows.Forms.TabControl();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.MissionFileCheckBox = new System.Windows.Forms.CheckBox();
+            this.ModTypeLabel = new System.Windows.Forms.Label();
+            this.ModTypeCombo = new System.Windows.Forms.ComboBox();
             this.PboEnabledCheckBox = new System.Windows.Forms.CheckBox();
             this.MissionDifficultyLabel = new System.Windows.Forms.Label();
             this.MissionDifficultyComboBox = new System.Windows.Forms.ComboBox();
@@ -82,6 +83,8 @@
             this.FunctionsListLabel = new System.Windows.Forms.Label();
             this.ServerTab2 = new System.Windows.Forms.TabControl();
             this.MainTab = new System.Windows.Forms.TabPage();
+            this.ArmaProcessIDBox = new System.Windows.Forms.TextBox();
+            this.ArmaProcessIDLabel = new System.Windows.Forms.Label();
             this.PullOnStartButton = new System.Windows.Forms.CheckBox();
             this.StartupProgressBar = new System.Windows.Forms.ProgressBar();
             this.ServerTab = new System.Windows.Forms.TabPage();
@@ -333,7 +336,8 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.MissionFileCheckBox);
+            this.panel1.Controls.Add(this.ModTypeLabel);
+            this.panel1.Controls.Add(this.ModTypeCombo);
             this.panel1.Controls.Add(this.PboEnabledCheckBox);
             this.panel1.Controls.Add(this.MissionDifficultyLabel);
             this.panel1.Controls.Add(this.MissionDifficultyComboBox);
@@ -359,32 +363,45 @@
             this.panel1.Size = new System.Drawing.Size(513, 213);
             this.panel1.TabIndex = 17;
             // 
-            // MissionFileCheckBox
+            // ModTypeLabel
             // 
-            this.MissionFileCheckBox.AutoSize = true;
-            this.MissionFileCheckBox.Location = new System.Drawing.Point(123, 24);
-            this.MissionFileCheckBox.Name = "MissionFileCheckBox";
-            this.MissionFileCheckBox.Size = new System.Drawing.Size(72, 17);
-            this.MissionFileCheckBox.TabIndex = 29;
-            this.MissionFileCheckBox.Text = "Is Mission";
-            this.MissionFileCheckBox.UseVisualStyleBackColor = true;
-            this.MissionFileCheckBox.CheckedChanged += new System.EventHandler(this.MissionFileCheckBox_CheckedChanged);
+            this.ModTypeLabel.AutoSize = true;
+            this.ModTypeLabel.Location = new System.Drawing.Point(217, 4);
+            this.ModTypeLabel.Name = "ModTypeLabel";
+            this.ModTypeLabel.Size = new System.Drawing.Size(55, 13);
+            this.ModTypeLabel.TabIndex = 30;
+            this.ModTypeLabel.Text = "Mod Type";
+            // 
+            // ModTypeCombo
+            // 
+            this.ModTypeCombo.DisplayMember = "1";
+            this.ModTypeCombo.FormattingEnabled = true;
+            this.ModTypeCombo.Items.AddRange(new object[] {
+            "Mission",
+            "ClientMod",
+            "ServerMod"});
+            this.ModTypeCombo.Location = new System.Drawing.Point(219, 20);
+            this.ModTypeCombo.Name = "ModTypeCombo";
+            this.ModTypeCombo.Size = new System.Drawing.Size(78, 21);
+            this.ModTypeCombo.TabIndex = 29;
+            this.ModTypeCombo.ValueMember = "1";
+            this.ModTypeCombo.SelectedValueChanged += new System.EventHandler(this.ModTypeCombo_SelectedValueChanged);
             // 
             // PboEnabledCheckBox
             // 
             this.PboEnabledCheckBox.AutoSize = true;
-            this.PboEnabledCheckBox.Location = new System.Drawing.Point(25, 24);
+            this.PboEnabledCheckBox.Location = new System.Drawing.Point(25, 20);
             this.PboEnabledCheckBox.Name = "PboEnabledCheckBox";
-            this.PboEnabledCheckBox.Size = new System.Drawing.Size(81, 17);
+            this.PboEnabledCheckBox.Size = new System.Drawing.Size(83, 17);
             this.PboEnabledCheckBox.TabIndex = 28;
-            this.PboEnabledCheckBox.Text = "Enable Pbo";
+            this.PboEnabledCheckBox.Text = "Enable Mod";
             this.PboEnabledCheckBox.UseVisualStyleBackColor = true;
             this.PboEnabledCheckBox.CheckedChanged += new System.EventHandler(this.PboEnabledCheckBox_CheckedChanged);
             // 
             // MissionDifficultyLabel
             // 
             this.MissionDifficultyLabel.AutoSize = true;
-            this.MissionDifficultyLabel.Location = new System.Drawing.Point(304, 8);
+            this.MissionDifficultyLabel.Location = new System.Drawing.Point(320, 4);
             this.MissionDifficultyLabel.Name = "MissionDifficultyLabel";
             this.MissionDifficultyLabel.Size = new System.Drawing.Size(85, 13);
             this.MissionDifficultyLabel.TabIndex = 27;
@@ -399,7 +416,7 @@
             "regular",
             "veteran",
             "custom"});
-            this.MissionDifficultyComboBox.Location = new System.Drawing.Point(304, 24);
+            this.MissionDifficultyComboBox.Location = new System.Drawing.Point(320, 20);
             this.MissionDifficultyComboBox.Name = "MissionDifficultyComboBox";
             this.MissionDifficultyComboBox.Size = new System.Drawing.Size(85, 21);
             this.MissionDifficultyComboBox.TabIndex = 26;
@@ -497,7 +514,7 @@
             // GitTypeLabel
             // 
             this.GitTypeLabel.AutoSize = true;
-            this.GitTypeLabel.Location = new System.Drawing.Point(425, 8);
+            this.GitTypeLabel.Location = new System.Drawing.Point(425, 4);
             this.GitTypeLabel.Name = "GitTypeLabel";
             this.GitTypeLabel.Size = new System.Drawing.Size(45, 13);
             this.GitTypeLabel.TabIndex = 14;
@@ -510,7 +527,7 @@
             this.GitTypeCombo.Items.AddRange(new object[] {
             "GitHub",
             "GitLab"});
-            this.GitTypeCombo.Location = new System.Drawing.Point(425, 24);
+            this.GitTypeCombo.Location = new System.Drawing.Point(425, 20);
             this.GitTypeCombo.Name = "GitTypeCombo";
             this.GitTypeCombo.Size = new System.Drawing.Size(60, 21);
             this.GitTypeCombo.TabIndex = 13;
@@ -757,6 +774,8 @@
             // 
             // MainTab
             // 
+            this.MainTab.Controls.Add(this.ArmaProcessIDBox);
+            this.MainTab.Controls.Add(this.ArmaProcessIDLabel);
             this.MainTab.Controls.Add(this.PullOnStartButton);
             this.MainTab.Controls.Add(this.StartupProgressBar);
             this.MainTab.Controls.Add(this.panel2);
@@ -781,6 +800,23 @@
             this.MainTab.TabIndex = 0;
             this.MainTab.Text = "Main Settings";
             this.MainTab.UseVisualStyleBackColor = true;
+            // 
+            // ArmaProcessIDBox
+            // 
+            this.ArmaProcessIDBox.Location = new System.Drawing.Point(163, 693);
+            this.ArmaProcessIDBox.Name = "ArmaProcessIDBox";
+            this.ArmaProcessIDBox.ReadOnly = true;
+            this.ArmaProcessIDBox.Size = new System.Drawing.Size(62, 20);
+            this.ArmaProcessIDBox.TabIndex = 25;
+            // 
+            // ArmaProcessIDLabel
+            // 
+            this.ArmaProcessIDLabel.AutoSize = true;
+            this.ArmaProcessIDLabel.Location = new System.Drawing.Point(101, 696);
+            this.ArmaProcessIDLabel.Name = "ArmaProcessIDLabel";
+            this.ArmaProcessIDLabel.Size = new System.Drawing.Size(56, 13);
+            this.ArmaProcessIDLabel.TabIndex = 24;
+            this.ArmaProcessIDLabel.Text = "ProcessID";
             // 
             // PullOnStartButton
             // 
@@ -1942,7 +1978,10 @@
         private System.Windows.Forms.ComboBox MissionDifficultyComboBox;
         private System.Windows.Forms.CheckBox PullOnStartButton;
         private System.Windows.Forms.CheckBox PboEnabledCheckBox;
-        private System.Windows.Forms.CheckBox MissionFileCheckBox;
+        private System.Windows.Forms.TextBox ArmaProcessIDBox;
+        private System.Windows.Forms.Label ArmaProcessIDLabel;
+        private System.Windows.Forms.Label ModTypeLabel;
+        private System.Windows.Forms.ComboBox ModTypeCombo;
     }
 }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using ArmaServerBackend;
 
@@ -11,6 +12,9 @@ namespace ArmaServerFrontend
     {
         private static Form thisForm;
         private bool preloaded = false;
+        private bool isOnline = false;
+        private int lastSelectedPbo = 0;
+        private Dictionary<int, PboFiles> pboList = new Dictionary<int, PboFiles>();
 
         public Home() {
             InitializeComponent();
@@ -114,19 +118,17 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         }
 
-        /// PBO setup
-        private int lastSelectedPbo = 0;
-        private Dictionary<int, PboFiles> pboList = new Dictionary<int, PboFiles>();
+        // PBO setup 
         private void NewPboTab(PboFiles newPboValues)
         {
             List<PboFiles> PboFilesUpdated = new List<PboFiles>();
             int pboListCount = 0;
 
-            if (PboFileBox.TabCount > 4)
+            /*if (PboFileBox.TabCount > 4)
             {
                 MessageBox.Show("5 PBO's Max");
                 return;
-            }
+            }*/
 
             foreach (KeyValuePair<int, PboFiles> pbo in pboList.ToList())
             { 
@@ -143,38 +145,27 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         }
         private void LoadPboContols(PboFiles pboValues)
-        {
-            if (!preloaded) GitTypeCombo.SelectedIndex += 1;
-            MissionFileCheckBox.Checked = pboValues.IsMission;
+        {  
+            ModTypeCombo.SelectedIndex = (int)Enum.ToObject(typeof(PboModType), pboValues.ModType);
             PboEnabledCheckBox.Checked = pboValues.IsEnabled;
             PboNameBox.Text = pboValues.Name;
             GitPathBox.Text = pboValues.GitBranch;
             GitUrlBox.Text = pboValues.GitUrl;
             GitTokenBox.Text = pboValues.GitToken;
-            GitTypeCombo.SelectedIndex = (int)Enum.ToObject(typeof(GitServer), GitTypeCombo.SelectedIndex);
+            GitTypeCombo.SelectedIndex = (int)Enum.ToObject(typeof(GitServer), pboValues.GitServer);
             PboServerPathBox.Text = pboValues.ServerPath;
-            switch (pboValues.MissionDifficulty)
-            {
-                case "recruit":
-                    MissionDifficultyComboBox.SelectedIndex = (int)MissionDifficulty.recruit;
-                    break;
-                case "regular":
-                    MissionDifficultyComboBox.SelectedIndex = (int)MissionDifficulty.regular;
-                    break;
-                case "veteran":
-                    MissionDifficultyComboBox.SelectedIndex = (int)MissionDifficulty.veteran;
-                    break;
-                case "custom":
-                    MissionDifficultyComboBox.SelectedIndex = (int)MissionDifficulty.custom;
-                    break;
-                default:
-                    MissionDifficultyComboBox.SelectedIndex = (int)MissionDifficulty.recruit;
-                    break;
-            }
+            MissionDifficultyComboBox.SelectedIndex = (int)Enum.ToObject(typeof(MissionDifficulty), pboValues.MissionDifficulty); 
             OneLineButton.Checked = pboValues.SingleLineFunctions;
             RenameFuncsButton.Checked = pboValues.RandomizeFunctions;
             RenameGlobalVarsButton.Checked = pboValues.RandomizeGlobalVariables;
             RenameLocalVarsButton.Checked = pboValues.RandomizeLocalVariables;
+
+            //Hide-Show controls
+            MissionDifficultyLabel.Visible = (pboValues.ModType == PboModType.Mission);
+            MissionDifficultyComboBox.Visible = (pboValues.ModType == PboModType.Mission);
+            PboServerPathLabel.Visible = (pboValues.ModType != PboModType.Mission);
+            PboServerPathBox.Visible = (pboValues.ModType != PboModType.Mission);
+            PboServerPathButton.Visible = (pboValues.ModType != PboModType.Mission);
         }
         private void UpdatePbos()
         {
@@ -186,18 +177,19 @@ namespace ArmaServerFrontend
                 if (PboFileBox.SelectedIndex == pbo.Key)
                 {
                     PboFileBox.TabPages[pbo.Key].Text = PboNameBox.Text;
-                     
+                    PboModType pboModType = (PboModType)Enum.ToObject(typeof(PboModType), ModTypeCombo.SelectedIndex);
+
                     PboFiles PboFileUpdated = new PboFiles()
                     {
-                        IsMission = MissionFileCheckBox.Checked,
+                        ModType = pboModType,
                         IsEnabled = PboEnabledCheckBox.Checked,
                         Name = PboNameBox.Text,
                         GitBranch = GitPathBox.Text,
                         GitUrl = GitUrlBox.Text,
                         GitToken = GitTokenBox.Text,
-                        GitServer = (GitServer)Enum.ToObject(typeof(GitServer), (GitTypeCombo.SelectedIndex + 1)),
-                        ServerPath = MissionFileCheckBox.Checked ? Path.Combine(DLL.ConfigValues.serverSettings.ServerDirectory, "mpmissions") : PboServerPathBox.Text,
-                        MissionDifficulty = Enum.GetName(typeof(MissionDifficulty), MissionDifficultyComboBox.SelectedIndex),
+                        GitServer = (GitServer)Enum.ToObject(typeof(GitServer), GitTypeCombo.SelectedIndex),
+                        ServerPath = pboModType == PboModType.Mission  ? Path.Combine(DLL.ConfigValues.serverSettings.ServerDirectory, "mpmissions") : PboServerPathBox.Text,
+                        MissionDifficulty = (MissionDifficulty)Enum.ToObject(typeof(MissionDifficulty), MissionDifficultyComboBox.SelectedIndex),
                         SingleLineFunctions = OneLineButton.Checked,
                         RandomizeFunctions = RenameFuncsButton.Checked,
                         RandomizeGlobalVariables = RenameGlobalVarsButton.Checked,
@@ -205,11 +197,11 @@ namespace ArmaServerFrontend
                     };
 
                     //Hide-Show controls
-                    MissionDifficultyLabel.Visible = PboFileUpdated.IsMission;
-                    MissionDifficultyComboBox.Visible = PboFileUpdated.IsMission;
-                    PboServerPathLabel.Visible = !PboFileUpdated.IsMission;
-                    PboServerPathBox.Visible = !PboFileUpdated.IsMission;
-                    PboServerPathButton.Visible = !PboFileUpdated.IsMission;
+                    MissionDifficultyLabel.Visible = (pboModType == PboModType.Mission);
+                    MissionDifficultyComboBox.Visible = (pboModType == PboModType.Mission);
+                    PboServerPathLabel.Visible = (pboModType != PboModType.Mission);
+                    PboServerPathBox.Visible = (pboModType != PboModType.Mission);
+                    PboServerPathButton.Visible = (pboModType != PboModType.Mission);
 
                     pboList[pbo.Key] = PboFileUpdated;
                 }
@@ -220,7 +212,7 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
 
         }
-        private void AddPboTabButton_Click(object sender, EventArgs e) => NewPboTab(new PboFilesDefault().Values("Your_PBO_Name_Here", "C:\\Arma3\\@SomeAddon\\addons\\", false));
+        private void AddPboTabButton_Click(object sender, EventArgs e) => NewPboTab(new PboFilesDefault().Values(_IsEnabled:false));
         private void RemovePboButton_Click(object sender, EventArgs e)
         {
             List<PboFiles> PboFilesUpdated = new List<PboFiles>();
@@ -249,7 +241,7 @@ namespace ArmaServerFrontend
             }
         }
         private void PboEnabledCheckBox_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
-        private void MissionFileCheckBox_CheckedChanged(object sender, EventArgs e) => UpdatePbos(); 
+        private void ModTypeCombo_SelectedValueChanged(object sender, EventArgs e) => UpdatePbos(); 
         private void MissionDifficultyComboBox_SelectedValueChanged(object sender, EventArgs e) => UpdatePbos();
         private void PboNameBox_TextChanged(object sender, EventArgs e) => UpdatePbos();
         private void GitPathBox_TextChanged(object sender, EventArgs e) => UpdatePbos();
@@ -268,10 +260,23 @@ namespace ArmaServerFrontend
         {
             DLL.ConfigValues.serverSettings.PullOnStart = PullOnStartButton.Checked;
             DLL.ConfigFunctions.Save();
+        } 
+        private void LaunchButton_Click(object sender, EventArgs e)
+        {
+            isOnline = isOnline ? false : true;
+            LaunchButton.Text = isOnline ? "Stop" : "Start";
+            if (isOnline) LaunchButton.Enabled = false;
+            ArmaProcessIDBox.Text = DLL.UtilityFunctions.SwitchOnlineState(
+                ArmaProcessIDBox,
+                isOnline,
+                false,//runOnce
+                thisForm,
+                StartupProgressBar,
+                PullOnStartButton.Checked,
+                LaunchButton
+            );
         }
-
-        private void LaunchButton_Click(object sender, EventArgs e) => Program.BackendDLL.LaunchServer(thisForm, StartupProgressBar, PullOnStartButton.Checked);
-
+        
         ///////////////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Server TAB
@@ -1127,6 +1132,8 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         }
  
+
+
 
 
 

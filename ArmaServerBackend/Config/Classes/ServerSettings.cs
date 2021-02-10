@@ -8,6 +8,7 @@ namespace ArmaServerBackend
         public bool X64Architecture { get; set; }
         public bool PullOnStart { get; set; }
         public string hostName { get; set; }
+        public int port { get; set; }
         public string password { get; set; }
         public string passwordAdmin { get; set; }
         public string serverCommandPassword { get; set; }
@@ -85,6 +86,7 @@ namespace ArmaServerBackend
             X64Architecture = false,
             PullOnStart = true,
             hostName = _hostName,
+            port = 2302,
             password = DLL.HelperFunctions.RandomString(5),
             passwordAdmin = DLL.HelperFunctions.RandomString(7),
             serverCommandPassword = DLL.HelperFunctions.RandomVariable(8),

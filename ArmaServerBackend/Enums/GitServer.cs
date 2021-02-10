@@ -2,7 +2,7 @@
 {
     public enum GitServer
     {
-        GitHub = 1,
-        GitLab = 2
+        GitHub = 0,
+        GitLab = 1
     }
 }

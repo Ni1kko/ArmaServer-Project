@@ -54,7 +54,6 @@
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Embedded\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
@@ -71,6 +70,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Classes\LaunchParameters.cs" />
     <Compile Include="Config\Classes\PboFiles.cs" />
     <Compile Include="Config\Classes\Settings.cs" />
     <Compile Include="Config\Config.cs" />
@@ -78,6 +78,7 @@
     <Compile Include="DLL.cs" />
     <Compile Include="Embedded\Embedded.cs" />
     <Compile Include="Enums\MissionDifficulty.cs" />
+    <Compile Include="Enums\PboModType.cs" />
     <Compile Include="Misc\Components.cs" />
     <Compile Include="Misc\Helpers.cs" />
     <Compile Include="Misc\Pbo\PboCompressionStream.cs" />

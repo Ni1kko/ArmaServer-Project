@@ -71,17 +71,16 @@ namespace ArmaServerBackend
         }
         private string GetMissions(List<PboFiles> pboFiles)
         {
-            //Todo edit to use pbo list
             var missionString = "";
             var index = 0;
 
             foreach (PboFiles pbo in pboFiles)
             {
-                if (!pbo.IsMission) continue;
+                if (pbo.ModType != PboModType.Mission) continue;//Not mission mod
                 if (!pbo.IsEnabled) continue;
              
                 index++;
-                missionString = missionString +
+                missionString +=
                     Helpers.NewLine() + Helpers.NewTab() + "class Mission_" + index + Helpers.NewLine() +
                     Helpers.NewTab() + "{" + Helpers.NewLine() +
                     Helpers.NewTab(2) + "template = \"" + pbo.Name + "\";" +
@@ -93,6 +92,18 @@ namespace ArmaServerBackend
             }
             return missionString;
         }
+        internal string GetMods(List<PboFiles> pboFiles, PboModType pboModType)
+        {
+            var modString = "";
+            foreach (PboFiles pbo in pboFiles)
+            {
+                if (pbo.ModType != pboModType) continue;//Not server mod
+                if (!pbo.IsEnabled) continue;
+                modString += pbo.ServerPath + ";";
+            }
+            if (modString.EndsWith(";")) modString = modString.TrimEnd(';');
+            return modString;
+        }
         private string GetAdvancedOptions(AdvancedOptions advancedOptions)
         {
             string options = "";
@@ -101,7 +112,7 @@ namespace ArmaServerBackend
             options += Helpers.NewTab() + "ignoreMissionLoadErrors = " + advancedOptions.ignoreMissionLoadErrors.ToString().ToLower() + ";";
             return options;
         }
-
+        
         // Return Configs As String
         private string GetBasicConfigString(ServerBasicSettings BasicSetting)
         {
@@ -237,13 +248,22 @@ namespace ArmaServerBackend
         // Write Json Config As String
         public void WriteBasicConfigFile(string file, ServerBasicSettings basicSetting) => File.WriteAllText(file, GetBasicConfigString(basicSetting));
         public void WriteServerConfigFile(string file, Settings settings) => File.WriteAllText(file, GetServerConfigString(settings));
-        
+
+        //Get Config Path
+        public string GetA3Config(Settings settings, int config = 0)
+        { 
+            if (config != 0 && config != 1) return "";
+            var path = Path.Combine(settings.serverSettings.ServerDirectory, "A3Config");
+            var file = Path.Combine(path, (config == 0) ? "ArmaServerBasic.cfg" : "ArmaServerServer.cfg");
+            return File.Exists(file) ? file : "";
+        }
+
         // Creates .cfg from .json values
         public bool CreateA3ConfigFile(Settings settings, int config = 0)
         {
             if (config != 0 && config != 1) return false;
             var path = Path.Combine(settings.serverSettings.ServerDirectory, "A3Config");
-            var file = Path.Combine(path, (config == 0) ? "ArmaBasic.cfg" : "ArmaServer.cfg");
+            var file = Path.Combine(path, (config == 0) ? "ArmaServerBasic.cfg" : "ArmaServerServer.cfg");
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
             if(config == 0) WriteBasicConfigFile(file, settings.BasicSetting); else WriteServerConfigFile(file, settings);
             Thread.Sleep(2000);

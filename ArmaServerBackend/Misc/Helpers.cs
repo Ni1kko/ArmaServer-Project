@@ -13,8 +13,7 @@ namespace ArmaServerBackend
 {
     public class Helpers
     {
-        private static Random random = new Random();
-        private static List<string> pulledGits = new List<string>();
+        private static Random random = new Random(); 
 
         public bool isValidSteamID(string steamID)
         {
@@ -139,13 +138,26 @@ namespace ArmaServerBackend
             if(textBox.Text == "") return false;
             return AlreadyInBox(listBox, textBox.Text);
         }
-
-        internal static bool GitDownload(PboFiles pbo)
+        public static void DeleteDirectory(string target_dir)
         {
-            if (pulledGits.Contains(pbo.GitUrl.ToLower())) return true;
+            string[] files = Directory.GetFiles(target_dir);
+            string[] dirs = Directory.GetDirectories(target_dir);
 
-            pulledGits.Add(pbo.GitUrl.ToLower());
+            foreach (string file in files)
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
+            }
 
+            foreach (string dir in dirs)
+            {
+                DeleteDirectory(dir);
+            }
+
+            Directory.Delete(target_dir, false);
+        }
+        internal static bool GitDownload(PboFiles pbo)
+        {  
             Console.WriteLine("Pulling from git...");
 
             try
@@ -217,6 +229,7 @@ namespace ArmaServerBackend
         { 
             string modPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.Name) + ".pbo";
             string serverPath = Path.Combine(pbo.ServerPath, pbo.Name) + ".pbo";
+            if (pbo.ModType != PboModType.Mission) serverPath = Path.Combine(pbo.ServerPath, "addons", pbo.Name) + ".pbo";
 
             try
             {
@@ -250,27 +263,7 @@ namespace ArmaServerBackend
             }
             pboFile.Save($"{modPath}.pbo");
         }
-                
-        internal static void EndTask(string taskname)
-        {
-            string processName = taskname;
-
-            if (taskname.Contains(".exe"))
-            {
-                foreach (Process process in Process.GetProcessesByName(taskname.Replace(".exe", "")))
-                {
-                    process.Kill();
-                }
-            }
-            else if (!taskname.Contains(".exe"))
-            {
-                foreach (Process process in Process.GetProcessesByName(processName))
-                {
-                    process.Kill();
-                }
-            }
-        }
-
+  
         internal static string NewLine(int numOfLines = 1)
         {
             var newLines = "";

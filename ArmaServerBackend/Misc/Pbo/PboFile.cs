@@ -227,22 +227,13 @@ namespace ArmaServerBackend
 
             // save to new path
             _path = path;
-            Save(new FileStream(path, FileMode.Create));
-        }
-
-        /// <summary>
-        /// Saves all the entries to the stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        public void Save(Stream stream) {
-            // save to new path
             ResolveAllEntries();
-            _stream = stream;
+            _stream = new FileStream(path, FileMode.Create);
             _writer = new BinaryWriter(_stream);
             _reader = new BinaryReader(_stream);
-            Save();
+            Save(); 
         }
-
+ 
         /// <summary>
         /// Saves entries to file, all entries data must be fully loaded into data before the file can be updated.
         /// </summary>
@@ -307,6 +298,7 @@ namespace ArmaServerBackend
 
             // flush buffers
             _stream.Flush();
+            _stream.Dispose();//fix for locked file
         }
 
         /// <summary>
@@ -382,9 +374,7 @@ namespace ArmaServerBackend
         /// Creates a pbo file object and either opens an existing PBO or creates a new one at the provided path.
         /// </summary>
         /// <param name="path">The path.</param>
-        public PboFile(string path)
-            : this(path, FileAccess.ReadWrite) {
-        }
+        public PboFile(string path) : this(path, FileAccess.ReadWrite) { }
 
         /// <summary>
         /// Creates a pbo file object and either opens an existing PBO or creates a new one at the provided path.
