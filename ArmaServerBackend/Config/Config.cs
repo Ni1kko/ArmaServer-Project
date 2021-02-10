@@ -52,8 +52,6 @@ namespace ArmaServerBackend
         //Write Default values to .json
         private Settings SaveDefaults()
         {
-    
-
             DLL.ConfigValues = new Settings() {
                 ServerDirectory = "C:\\Arma3",
                 GitDirectory = "C:\\Github",

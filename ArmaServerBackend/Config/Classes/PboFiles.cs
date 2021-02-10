@@ -8,7 +8,7 @@
     public class PboFiles
     {
         public string Name { get; set; }
-        public string GitPath { get; set; }
+        public string GitBranch { get; set; }
         public string GitUrl { get; set; }
         public string GitToken { get; set; }
         public int GitType { get; set; } // 1 = GitHub, 2 = GitLab, implement ur own if u need
@@ -24,7 +24,7 @@
         public PboFiles Values(string _Name, string _ServerPath) => new PboFiles()
         {
             Name = _Name,
-            GitPath = "repo-main",
+            GitBranch = "repo-main",
             GitUrl = "https://github.com/user/repo/archive/master.zip",
             GitToken = "xxxxx",
             GitType = (int)GitType.GitHub,

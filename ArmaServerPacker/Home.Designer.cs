@@ -430,6 +430,7 @@
             // 
             this.GitTokenBox.Location = new System.Drawing.Point(222, 25);
             this.GitTokenBox.Name = "GitTokenBox";
+            this.GitTokenBox.PasswordChar = '★';
             this.GitTokenBox.Size = new System.Drawing.Size(199, 20);
             this.GitTokenBox.TabIndex = 11;
             this.GitTokenBox.TextChanged += new System.EventHandler(this.GitTokenBox_TextChanged);
@@ -667,9 +668,11 @@
             this.Controls.Add(this.BrowseServerDirectory);
             this.Controls.Add(this.ServerDirectoryPathBox);
             this.Controls.Add(this.KillArmaCheckBox);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.MinimumSize = new System.Drawing.Size(555, 728);
             this.Name = "Home";
+            this.ShowIcon = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ArmaServerCQC";
             this.PboFileBox.ResumeLayout(false);
             this.panel1.ResumeLayout(false);

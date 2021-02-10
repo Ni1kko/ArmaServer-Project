@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ArmaServerBackend
@@ -24,11 +22,13 @@ namespace ArmaServerBackend
         internal protected static Dictionary<string, string> _scriptFuncs = new Dictionary<string, string>();
 
         //Subscibe AssemblyResolve to resolve embedded assemblies
-        public DLL() => AppDomain.CurrentDomain.AssemblyResolve += DLL.AssemblyFunctions.AssemblyResolver;
+        public DLL() => AppDomain.CurrentDomain.AssemblyResolve += AssemblyFunctions.AssemblyResolver;
           
         //Download, Randomize & Pack everything
-        public bool PackServer()
+        public bool LaunchServer()
         {
+            string procName = (ConfigValues.Use64BitServer ? "arma3server_x64.exe" : "arma3server.exe");
+
             //purge directory if exists and create new
             try
             {
@@ -44,75 +44,49 @@ namespace ArmaServerBackend
             //Kill arma3 process
             if (ConfigValues.KillArmaServer)
             {
-                Console.WriteLine("Ending Arma3Server processes");
-
-                if (ConfigValues.Use64BitServer)
-                    Helpers.EndTask("arma3server_x64.exe");
-                else
-                    Helpers.EndTask("arma3server.exe");
+                Console.WriteLine($"Stoping {procName}");
+                Helpers.EndTask(procName);
             }
 
             //Timeout 
             Thread.Sleep(2000);
 
             //Create random local vars
-            foreach (string s in ConfigValues.ObfLocalVars)
+            foreach (string varToChange in ConfigValues.ObfLocalVars)
             {
-                string newVar = "_" + Utilities.RandomString(ConfigValues.RandomVarsLength);
-                _localVars[s] = newVar;
-                File.AppendAllText("variables.log", $"{s} => {newVar}\r\n");
+                string newVar = "_" + Helpers.RandomString(ConfigValues.RandomVarsLength);
+                _localVars[varToChange] = newVar;
+                File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
             }
 
             //Create random global vars
-            foreach (string s in ConfigValues.ObfGlobalVars)
+            foreach (string varToChange in ConfigValues.ObfGlobalVars)
             {
-                string newVar = Utilities.RandomString(ConfigValues.RandomVarsLength);
-                _globalVars[s] = newVar;
-                File.AppendAllText("variables.log", $"{s} => {newVar}\r\n");
+                string newVar = Helpers.RandomString(ConfigValues.RandomVarsLength);
+                _globalVars[varToChange] = newVar;
+                File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
             }
 
             //Create random function vars
-            foreach (string s in ConfigValues.ObfFunctions)
+            foreach (string varToChange in ConfigValues.ObfFunctions)
             {
-                string newFnc = Utilities.RandomString(ConfigValues.RandomFuncsLength);
-                string fnc = s.Replace(ConfigValues.FunctionsTag + "_fnc_", "");
-                _scriptFuncs[fnc] = newFnc;
-                File.AppendAllText("variables.log", $"{s} => {newFnc}\r\n");
+                string newVar = Helpers.RandomString(ConfigValues.RandomFuncsLength);
+                _scriptFuncs[varToChange.Replace(ConfigValues.FunctionsTag + "_fnc_", "")] = newVar;
+                File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
             }
 
-            //Download Folders and change all vars to random vars
-            foreach (PboFiles sm in ConfigValues.Pbos)
+            //Download Folders, change all vars to random vars, Pack and move all pbos
+            foreach (PboFiles pbo in ConfigValues.Pbos)
             {
-                Utilities.Assert(Utilities.GitDownload(sm), $"Downloading from git: {sm.Name}/{sm.GitUrl}");
-
-                Helpers.RandomizeEverything(sm);
-                Helpers.Pack(sm);
+                Utilities.Assert(Helpers.GitDownload(pbo), $"Downloading from git: {pbo.Name}/{pbo.GitUrl}");
+                Helpers.RandomizeEverything(pbo);
+                Helpers.Pack(pbo);
+                Utilities.Assert(Helpers.Move(pbo), "Failed to move files");
             }
 
-            //Obfuscate all pbos
-            foreach (PboFiles sm in ConfigValues.Pbos)
-            {
-                if (Helpers.ObfuProcs.Count > 0)
-                {
-                    Console.WriteLine("Waiting for ObfuSQF to finish...");
-
-                    while (Helpers.ObfuProcs.Count > 0)
-                    {
-                        List<Process> ps = new List<Process>(Helpers.ObfuProcs);
-
-                        foreach (Process p in ps) if (p.HasExited && Helpers.ObfuProcs.Contains(p)) Helpers.ObfuProcs.Remove(p);
-
-                        Thread.Sleep(100);
-                    }
-
-                    Console.WriteLine("ObfuSQF finished.");
-                }
-
-                Utilities.Assert(Helpers.Move(sm), "Failed to move files");
-            }
-
-            //Start Arma3 server
-            Process.Start(ConfigValues.ServerDirectory + "/" + (ConfigValues.Use64BitServer ? "arma3server_x64.exe" : "arma3server.exe"));
+            //Start Arma3 server 
+            MessageBox.Show($"Starting {procName}");
+            Process.Start(ConfigValues.ServerDirectory + "/" + procName);
 
             //Return
             return true;

@@ -74,15 +74,14 @@
     <Compile Include="Config\Config.cs" />
     <Compile Include="DLL.cs" />
     <Compile Include="Embedded\Embedded.cs" />
-    <Compile Include="Helpers\Helpers.cs" />
-    <Compile Include="Helpers\ControlFactory.cs" />
-    <Compile Include="Pbo\PboCompressionStream.cs" />
-    <Compile Include="Pbo\PboEntry.cs" />
-    <Compile Include="Pbo\PboFile.cs" />
-    <Compile Include="Pbo\PboPacking.cs" />
-    <Compile Include="Pbo\PboResolver.cs" />
+    <Compile Include="Misc\Helpers.cs" />
+    <Compile Include="Misc\Pbo\PboCompressionStream.cs" />
+    <Compile Include="Misc\Pbo\PboEntry.cs" />
+    <Compile Include="Misc\Pbo\PboFile.cs" />
+    <Compile Include="Misc\Pbo\PboPacking.cs" />
+    <Compile Include="Misc\Pbo\PboResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities.cs" />
+    <Compile Include="Misc\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Embedded\Newtonsoft.Json.dll" />

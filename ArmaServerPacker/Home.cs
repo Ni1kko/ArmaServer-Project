@@ -220,7 +220,7 @@ namespace ArmaServerFrontend
         private void LoadPboContols(PboFiles pboValues)
         {
             PboNameBox.Text = pboValues.Name;
-            GitPathBox.Text = pboValues.GitPath;
+            GitPathBox.Text = pboValues.GitBranch;
             GitUrlBox.Text = pboValues.GitUrl;
             GitTokenBox.Text = pboValues.GitToken;
             GitTypeCombo.SelectedIndex = (pboValues.GitType - 1);
@@ -244,7 +244,7 @@ namespace ArmaServerFrontend
                     PboFiles PboFileUpdated = new PboFiles()
                     {
                         Name = PboNameBox.Text,
-                        GitPath = GitPathBox.Text,
+                        GitBranch = GitPathBox.Text,
                         GitUrl = GitUrlBox.Text,
                         GitToken = GitTokenBox.Text,
                         GitType = (int)(GitType)Enum.ToObject(typeof(GitType), (GitTypeCombo.SelectedIndex + 1)),
@@ -269,18 +269,18 @@ namespace ArmaServerFrontend
         {
             List<PboFiles> PboFilesUpdated = new List<PboFiles>();
 
-           
             foreach (KeyValuePair<int, PboFiles> pbo in pboList.ToList())
             {
                 if (PboFileBox.SelectedIndex != pbo.Key)
                 { 
                     PboFilesUpdated.Add(pboList[pbo.Key]);
-                } 
+                }
             }
 
             pboList.Remove(PboFileBox.SelectedIndex);
             PboFileBox.TabPages.Remove(PboFileBox.TabPages[PboFileBox.SelectedIndex]);
-            LoadPboContols(pboList[PboFileBox.SelectedIndex]);
+            //PboFileBox.SelectedIndex = 0;
+            //LoadPboContols(pboList[PboFileBox.SelectedIndex]);
 
             DLL.ConfigValues.Pbos = PboFilesUpdated;
             DLL.ConfigFunctions.Save();
@@ -317,7 +317,6 @@ namespace ArmaServerFrontend
         /// <summary>
         /// Launch
         /// </summary>
-        private void LaunchButton_Click(object sender, EventArgs e) => Program.BackendDLL.PackServer();
-      
+        private void LaunchButton_Click(object sender, EventArgs e) => Program.BackendDLL.LaunchServer();
     }   
 }
