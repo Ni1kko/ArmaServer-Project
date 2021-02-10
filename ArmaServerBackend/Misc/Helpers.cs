@@ -16,6 +16,15 @@ namespace ArmaServerBackend
         private static Random random = new Random();
         private static List<string> pulledGits = new List<string>();
 
+        public bool isValidSteamID(string steamID)
+        {
+            if (steamID.Length != 17) return false;
+
+            //TODO: Add steamkit dll and verify
+
+            return true;
+        }
+         
         /// <summary>
         /// Opens Folder Path Dialog and returns selected folder path
         /// </summary>
@@ -27,6 +36,7 @@ namespace ArmaServerBackend
                 return (folderBrowserDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath)) ? folderBrowserDialog.SelectedPath : "";
             }
         }
+
         
         /// <summary>
         /// Add new string to list box
@@ -44,11 +54,11 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
-        /// Add new string to list box from a listbox
+        /// Add new string to listbox from a textbox and returns new List Array
         /// </summary>
         /// <param name="listBox"></param>
         /// <param name="textBox"></param>
-        /// <returns></returns>
+        /// <returns>List<string></returns>
         public List<string> AddListBoxValue(ListBox listBox, TextBox textBox)
         {
             string text = textBox.Text;
@@ -58,7 +68,7 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
-        /// Add new listarray of strings to list box
+        /// Add new list array of strings to list box
         /// </summary>
         /// <param name="listBox"></param>
         /// <param name="strings"></param>
@@ -68,11 +78,11 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
-        /// Removes an item from given index if none given it will remove the user selected one
+        /// Removes an item from given index if none given it will remove the user selected one and returns new List Array
         /// </summary>
         /// <param name="listBox"></param>
         /// <param name="SelectedItem"></param>
-        /// <returns></returns>
+        /// <returns>List<string></returns>
         public List<string> RemoveListBoxValue(ListBox listBox, int SelectedItem = -1)
         {
             if (SelectedItem < 0) SelectedItem = listBox.SelectedIndex;
@@ -86,7 +96,7 @@ namespace ArmaServerBackend
         /// Checks to see if string contains a charater
         /// </summary>
         /// <param name="text"></param>
-        /// <returns></returns>
+        /// <returns>bool</returns>
         public bool StringContainsChar(string text)
         {
             List<string> letters = new List<string>() { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
@@ -98,12 +108,36 @@ namespace ArmaServerBackend
         /// Checks to see if string contains a number
         /// </summary>
         /// <param name="text"></param>
-        /// <returns></returns>
+        /// <returns>bool</returns>
         public bool StringContainsNumber(string text)
         {
             List<string> numbers = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
             foreach (string _char in numbers) if (text.Contains(_char)) return true;
             return false;
+        }
+
+        /// <summary>
+        /// Checks too see if string is already listed
+        /// </summary>
+        /// <param name="listBox"></param>
+        /// <param name="stringToCheck"></param>
+        /// <returns>bool</returns>
+        public bool AlreadyInBox(ListBox listBox, string stringToCheck)
+        {
+            foreach (string item in listBox.Items) if (item == stringToCheck) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Checks too see if textBox is already listed
+        /// </summary>
+        /// <param name="listBox"></param>
+        /// <param name="textBox"></param>
+        /// <returns></returns>
+        public bool AlreadyInBox(ListBox listBox, TextBox textBox)
+        {
+            if(textBox.Text == "") return false;
+            return AlreadyInBox(listBox, textBox.Text);
         }
 
         internal static bool GitDownload(PboFiles pbo)
@@ -243,6 +277,15 @@ namespace ArmaServerBackend
             for (var i = 0; i < numOfLines; i++)
             {
                 newLines += Environment.NewLine;
+            }
+            return newLines;
+        }
+        internal static string NewTab(int numOfTabs = 1)
+        {
+            var newLines = "";
+            for (var i = 0; i < numOfTabs; i++)
+            {
+                newLines += "\t";
             }
             return newLines;
         }

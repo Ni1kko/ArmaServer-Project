@@ -6,6 +6,7 @@ namespace ArmaServerBackend
     {
         public string ServerDirectory { get; set; }
         public bool X64Architecture { get; set; }
+        public bool PullOnStart { get; set; }
         public string hostName { get; set; }
         public string password { get; set; }
         public string passwordAdmin { get; set; }
@@ -25,8 +26,7 @@ namespace ArmaServerBackend
         public int vonCodecQuality { get; set; }
         public int persistent { get; set; }
         public string timeStampFormat { get; set; }
-        public int BattlEye { get; set; }
-        public bool KickClientsOnSlowNetworkEnabled { get; set; }
+        public int BattlEye { get; set; } 
         public int kickClientsOnSlowNetwork { get; set; }
         public bool maxPingEnabled { get; set; }
         public int maxPing { get; set; } 
@@ -49,6 +49,7 @@ namespace ArmaServerBackend
         public int disconnectTimeout { get; set; }
         public int enablePlayerDiag { get; set; }
         public double callExtReportLimit { get; set; }
+        public bool lobbyIdleTimeoutEnabled { get; set; }
         public int lobbyIdleTimeout { get; set; }
         public int requiredSecureId { get; set; }
         public bool upnp { get; set; }
@@ -60,7 +61,7 @@ namespace ArmaServerBackend
         public List<string> headlessIps { get; set; }
         public List<string> localIps { get; set; }
         public List<kickTimeouts> kickTimeout { get; set; }
-        public List<Mission> Missions { get; set; }
+        public AdvancedOptions advancedOptions { get; set; }
     }
 
     public class kickTimeouts
@@ -68,13 +69,13 @@ namespace ArmaServerBackend
         public int type { get; set; }
         public int time { get; set; }
     }
-
-    public class Mission
+    public class AdvancedOptions
     {
-        public bool enabled { get; set; }
-        public string template { get; set; }
-        public string difficulty { get; set; }
+        public bool LogObjectNotFound { get; set; }
+        public bool SkipDescriptionParsing { get; set; }
+        public bool ignoreMissionLoadErrors { get; set; }
     }
+
     public class ServerSettingsDefault
     {
         public static string consoleLogFile = "server_console";
@@ -82,6 +83,7 @@ namespace ArmaServerBackend
         {
             ServerDirectory = serverDirectory,
             X64Architecture = false,
+            PullOnStart = true,
             hostName = _hostName,
             password = DLL.HelperFunctions.RandomString(5),
             passwordAdmin = DLL.HelperFunctions.RandomString(7),
@@ -98,11 +100,10 @@ namespace ArmaServerBackend
             voteThreshold = 0.99,
             disableVoN = 1,
             vonCodec = 1,
-            vonCodecQuality = 1,
+            vonCodecQuality = 15,
             persistent = 1,
             timeStampFormat = "short",
             BattlEye = 0,
-            KickClientsOnSlowNetworkEnabled = false,
             kickClientsOnSlowNetwork = 1,
             maxPingEnabled = false,
             maxPing = 500,
@@ -125,6 +126,7 @@ namespace ArmaServerBackend
             disconnectTimeout = 5,
             enablePlayerDiag = 1,
             callExtReportLimit = 2500.0,
+            lobbyIdleTimeoutEnabled = false,
             lobbyIdleTimeout = 300,
             requiredSecureId = 0,
             upnp = false,
@@ -135,6 +137,12 @@ namespace ArmaServerBackend
             HeadlessEnabled = false,
             headlessIps = new List<string>(),
             localIps = new List<string>(),
+            advancedOptions = new AdvancedOptions()
+            {
+                LogObjectNotFound = true,
+                SkipDescriptionParsing = false,
+                ignoreMissionLoadErrors = false
+            },
             kickTimeout = new List<kickTimeouts>() { 
                 new kickTimeouts()
                 {
@@ -155,15 +163,6 @@ namespace ArmaServerBackend
                 {
                     type = 3,//harmless kick (wrong addons, steam timeout or checks, signatures, content etc.)
                     time = 180// -1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
-                }
-            },
-            Missions = new List<Mission>()
-            {
-                new Mission()
-                {
-                    enabled = true,
-                    template = _missionName,
-                    difficulty = "regular"
                 }
             }
         };
