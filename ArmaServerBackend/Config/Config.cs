@@ -52,6 +52,8 @@ namespace ArmaServerBackend
         //Write Default values to .json
         private Settings SaveDefaults()
         {
+    
+
             DLL.ConfigValues = new Settings() {
                 ServerDirectory = "C:\\Arma3",
                 GitDirectory = "C:\\Github",
@@ -64,45 +66,9 @@ namespace ArmaServerBackend
                 ObfGlobalVars = new List<string>(),
                 ObfFunctions = new List<string>(),
                 Pbos = new List<PboFiles>() {
-                    new PboFiles
-                    {
-                        Name = "Mission.Altis",
-                        GitPath = "repo-main",
-                        GitUrl = "https://github.com/user/repo/archive/master.zip",
-                        GitToken = "xxxxx",
-                        GitType = 1,
-                        ServerPath = "C:\\Arma3\\mpMissions\\mission.pbo",
-                        OneLine = false,
-                        RenameFuncs = false,
-                        RenameGlobalVars = false,
-                        RenameLocalVars = false
-                    },
-                    new PboFiles
-                    {
-                        Name = "server_functions",
-                        GitPath = "repo-main",
-                        GitUrl = "https://github.com/user/repo/archive/master.zip",
-                        GitToken = "xxxxx",
-                        GitType = 1,
-                        ServerPath = "C:\\Arma3\\@ArmaServerCQCServer\\addons\\server_functions.pbo",
-                        OneLine = false,
-                        RenameFuncs = false,
-                        RenameGlobalVars = false,
-                        RenameLocalVars = false
-                    },
-                    new PboFiles
-                    {
-                        Name = "client_functions",
-                        GitPath = "repo-main",
-                        GitUrl = "https://github.com/user/repo/archive/master.zip",
-                        GitToken = "xxxxx",
-                        GitType = 1,
-                        ServerPath = "C:\\Arma3\\@ArmaServerCQCServerr\\addons\\client_functions.pbo",
-                        OneLine = false,
-                        RenameFuncs = false,
-                        RenameGlobalVars = false,
-                        RenameLocalVars = false
-                    }
+                    new PboFilesDefault().Values("Mission.Altis","C:\\Arma3\\mpMissions\\mission.pbo"),
+                    new PboFilesDefault().Values("client_functions","C:\\Arma3\\@ArmaServerCQCServer\\addons\\client_functions.pbo"),
+                    new PboFilesDefault().Values("server_functions","C:\\Arma3\\@ArmaServerCQCServer\\addons\\server_functions.pbo") 
                 }
             };
 
