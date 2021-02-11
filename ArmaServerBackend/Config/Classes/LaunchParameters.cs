@@ -1,11 +1,15 @@
-﻿namespace ArmaServerBackend
+﻿using System.Net;
+
+namespace ArmaServerBackend
 {
     public class LaunchParameters
     {
-        /// <summary>
-        /// Loads the specified sub-folders for different mods. Separated by semi-colons. Absolute path and multiple stacked folders are possible.
-        /// </summary>
         public string clientMods { get; set; }
+
+        /// <summary>
+        ///Starts client with preferred language
+        /// </summary>
+        public Language language { get; set; }
         
         /// <summary>
         /// Loads the specified sub-folders for different server-side (not broadcasted to clients) mods. Separated by semi-colons. Absolute path and multiple stacked folders are possible. 
@@ -26,7 +30,12 @@
         /// Port to have dedicated server listen on. 
         /// </summary>
         public int port { get; set; }
-        
+
+        /// <summary>
+        /// enable support for Multihome servers. Allows server process to use defined available IP address
+        /// </summary>
+        public IPAddress IP { get; set; }
+
         /// <summary>
         /// string containing server profiles path
         /// </summary>
@@ -52,6 +61,26 @@
         /// </summary>
         public bool autoinit { get; set; }
 
+        internal static string GetMods(System.Collections.Generic.List<PBOFile> pboFiles, PboModType pboModType)
+        {
+            var modString = "";
+            foreach (PBOFile pbo in pboFiles)
+            {
+                if (pbo.ModType != pboModType) continue;//Not server mod
+                if (!pbo.IsEnabled) continue;
+                modString += pbo.ServerPath + ";";
+            }
+            if (modString.EndsWith(";")) modString = modString.TrimEnd(';');
+            return modString;
+        }
+        internal static string GetA3Config(Settings settings, int config = 0)
+        {
+            if (config != 0 && config != 1) return "";
+            var path = System.IO.Path.Combine(settings.serverSettings.ServerDirectory, "A3Config");
+            var file = System.IO.Path.Combine(path, (config == 0) ? "ArmaBasic.cfg" : "ArmaServer.cfg");
+            return System.IO.File.Exists(file) ? file : "";
+        }
+
         /// <summary>
         /// Convert Parameters to user friendly string
         /// </summary>
@@ -60,6 +89,12 @@
         {
             //Start cmd line string
             string parameters = "";
+
+            //Add IP
+            if(DLL.ConfigValues.serverSettings.UseIP) parameters += " -ip=" + IP.ToString();
+
+            //Add language
+            parameters += " -language=" + System.Enum.GetName(typeof(Language), language);
 
             //Add port
             parameters += " -port=" + port.ToString();
@@ -82,6 +117,12 @@
 
             //Add persistent to cmd line
             if (autoinit) parameters += " -autoinit";
+
+            //Debug auto close arma
+            #if DEBUG
+                parameters += " -doNothing";
+                System.Console.WriteLine($"Launch Params: -doNothing Added Server will loop!");
+            #endif
 
             System.Console.WriteLine($"Launch Params: {parameters}");
              

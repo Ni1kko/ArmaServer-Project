@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -10,34 +11,15 @@ using System.Windows.Forms;
 namespace ArmaServerBackend
 {
     public class Utilities
-    { 
-        public int ArmaProcessID = -1;
-        private bool isOnline = false;
-        public bool IsArmaMonitored = false;
-        public bool IsFirstRun = true;
+    {
+        private int ArmaProcessID = -1;
+        private bool isOnline = false, IsArmaMonitored = false, IsFirstRun = true;
         private TextBox textBox = null;
         private string title = "";
 
-        /// <summary>
-        /// Get current HardwareID
-        /// </summary>
-        /// <returns></returns>
-        public static string GetMachineGuid()
-        {
-            using (RegistryKey localMachineX64View = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
-            {
-                using (RegistryKey rk = localMachineX64View.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography"))
-                {
-                    if (rk == null) throw new KeyNotFoundException(string.Format("Key Not Found: {0}", @"SOFTWARE\Microsoft\Cryptography"));
-                    object machineGuid = rk.GetValue("MachineGuid"); if (machineGuid == null) throw new IndexOutOfRangeException(string.Format("Index Not Found: {0}", "MachineGuid"));
-                    return machineGuid.ToString();
-                }
-            }
-        }
-
         private bool PullAndRandomize(Form form, ProgressBar progressBar)
         {
-            progressBar.Value = 0;//0%
+            progressBar.Value = 0;//0% 
 
             //purge directory if exists and create new
             try
@@ -47,11 +29,11 @@ namespace ArmaServerBackend
                 form.Text = $"{title} | Purging local git directory";
                 progressBar.Value += 10;//10% 
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Invalid git directory provided! Config is invalid?");
-                Assert(ex);
-            }
+            catch (IOException ex)
+            { 
+                MessageBox.Show("Invalid git directory provided | Extecption:  " + ex);
+                return false;
+            };
 
             //Timeout 
             Thread.Sleep(2000);
@@ -67,8 +49,8 @@ namespace ArmaServerBackend
                     string newVar = "_" + DLL.HelperFunctions.CreateRandomVariable(DLL.ConfigValues.RandomVariablesLength);
                     DLL._localVars[varToChange] = newVar;
                     File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
-                }
-            }
+                };
+            };
             progressBar.Value += 20;//40%
 
             //Create random global vars
@@ -80,8 +62,8 @@ namespace ArmaServerBackend
                     string newVar = DLL.HelperFunctions.CreateRandomVariable(DLL.ConfigValues.RandomVariablesLength);
                     DLL._globalVars[varToChange] = newVar;
                     File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
-                }
-            }
+                };
+            };
             progressBar.Value += 10;//50%
 
             //Create random function vars
@@ -93,43 +75,65 @@ namespace ArmaServerBackend
                     string newVar = DLL.HelperFunctions.CreateRandomVariable(DLL.ConfigValues.RandomFunctionsLength);
                     DLL._scriptFuncs[varToChange.Replace(DLL.ConfigValues.FunctionsTag + "_fnc_", "")] = newVar;
                     File.AppendAllText("ArmaServer.log", $"{varToChange} => {newVar}\r\n");
-                }
-            }
+                };
+            };
             progressBar.Value += 10;//60%
-
+            
+            
             //Download Folders, change all vars to random vars, Pack and move all pbos
             foreach (PBOFile pbo in DLL.ConfigValues.Pbos)
             {
                 if (!pbo.IsEnabled) continue;
-                form.Text = $"{title} | Downloading {pbo.Name} from git: {pbo.GitUrl}";
-                Assert(Helpers.DownloadPBO(pbo), $"Downloading from git: {pbo.Name}/{pbo.GitUrl}");
+                
+                //Download
+                form.Text = $"{title} | Downloading {pbo.Name}"; 
+                if (!Helpers.DownloadPBO(pbo, out Exception DownloadPBOException))
+                {
+                    MessageBox.Show($"Error Downloading: {pbo.Name}" + Helpers.NewLine() + $"From URL: {pbo.GitUrl}" + Helpers.NewLine() + $"Exception: {DownloadPBOException.Message}");
+                    return false;
+                };
                 Thread.Sleep(2000);
-                form.Text = $"{title} | Changing {pbo.Name} functions\variables too Randomized functions\variable";
-                Helpers.RandomizePBO(pbo);
-                Thread.Sleep(1000);
+
+                //Randomize
+                if(DLL.ConfigValues.Functions.Count > 0 || DLL.ConfigValues.GlobalVariables.Count > 0 || DLL.ConfigValues.LocalVaribales.Count > 0 || pbo.SingleLineFunctions)
+                {
+                    form.Text = $"{title} | Randomizing {pbo.Name}";
+                    if (!Helpers.RandomizePBO(pbo, out Exception RandomizePBOException))
+                    {
+                        MessageBox.Show($"Error Randomizing: {pbo.Name}" + Helpers.NewLine() + $"Exception: {RandomizePBOException.Message}");
+                        return false;
+                    };
+                    Thread.Sleep(1000);
+                };
+
+                //Pack
                 form.Text = $"{title} | Packing {pbo.Name}";
-                Helpers.PackPBO(pbo);
-                Assert(Helpers.MovePBO(pbo), "Failed to move files");
-            }
+                if (!Helpers.PackPBO(pbo, out Exception PackPBOException))
+                {
+                    MessageBox.Show($"Error Packing: {pbo.Name}" + Helpers.NewLine() + $"Exception: {PackPBOException.Message}");
+                    return false;
+                };
+
+                //Move
+                form.Text = $"{title} | Moving {pbo.Name}";
+                if (!Helpers.MovePBO(pbo, out Exception MovePBOException))
+                { 
+                    MessageBox.Show($"Error Moving: {pbo.Name}" + Helpers.NewLine() + $"From: {pbo.GitUrl}" + Helpers.NewLine() + $"Too: {pbo.ServerPath}" + Helpers.NewLine() + $"Exception: {MovePBOException.Message}");
+                    return false;
+                };
+            };
             progressBar.Value += 30;//90%
             Thread.Sleep(2000);
 
 
             progressBar.Value += 10;//100%  
             Thread.Sleep(2000);
-            progressBar.Value = 0;//0%
+            progressBar.Value = 0;//0% 
 
             //Return
             return true;
 
-        }
-        public bool IsProcessRunning(int procID)
-        {
-            try { Process.GetProcessById(procID); }
-            catch (InvalidOperationException) { return false; }
-            catch (ArgumentException) { return false; }
-            return true;
-        }
+        } 
         private int Run(TextBox _textBox, Form form, ProgressBar progressBar, bool gitPull, Button button)
         {
             isOnline = true;
@@ -145,11 +149,23 @@ namespace ArmaServerBackend
                 {
                     form.Text = $"{title} | Creating {(index == 0 ? "Basic" : "Server")} Config";
                     DLL.ConfigFunctions.CreateA3ConfigFile(DLL.ConfigValues, index);
-                }
+                };
                 Thread.Sleep(5000);//Timeout
 
                 //Update local with git
-                if (gitPull) PullAndRandomize(form, progressBar); 
+                if (gitPull) 
+                {
+                    if (!PullAndRandomize(form, progressBar))
+                    {
+                        //reset everything
+                        ArmaProcessID = -1;
+                        form.Text = title;
+                        progressBar.Value = 0;
+                        button.Text = "Start";
+                        button.Enabled = true;
+                        return Die();
+                    };
+                };
                 
                 form.Text = title;
             }
@@ -162,10 +178,12 @@ namespace ArmaServerBackend
                     FileName = Path.Combine(DLL.ConfigValues.serverSettings.ServerDirectory, (DLL.ConfigValues.serverSettings.X64Architecture ? "arma3server_x64.exe" : "arma3server.exe")),
                     Arguments = new LaunchParameters()
                     {
-                        clientMods = DLL.ConfigFunctions.GetMods(DLL.ConfigValues.Pbos, PboModType.ClientMod),
-                        serverMods = DLL.ConfigFunctions.GetMods(DLL.ConfigValues.Pbos, PboModType.ServerMod),
-                        configBasic = DLL.ConfigFunctions.GetA3Config(DLL.ConfigValues, 0),
-                        configServer = DLL.ConfigFunctions.GetA3Config(DLL.ConfigValues, 1),
+                        language = DLL.ConfigValues.BasicSetting.language,
+                        clientMods = LaunchParameters.GetMods(DLL.ConfigValues.Pbos, PboModType.ClientMod),
+                        serverMods = LaunchParameters.GetMods(DLL.ConfigValues.Pbos, PboModType.ServerMod),
+                        configBasic = LaunchParameters.GetA3Config(DLL.ConfigValues, 0),
+                        configServer = LaunchParameters.GetA3Config(DLL.ConfigValues, 1),
+                        IP = IPAddress.Parse(DLL.ConfigValues.serverSettings.IP),
                         port = DLL.ConfigValues.serverSettings.port,
                         profiles = "A3Config",
                         name = "Server",
@@ -197,13 +215,13 @@ namespace ArmaServerBackend
         {
             isOnline = false;
             ArmaProcessID = -1;//Reset our var 
-            textBox.Text = ArmaProcessID.ToString();//was going to use the event for restarting but i decided a threaded async loop will be better since i have no idea if this event is reliable
+            textBox.Text = Die().ToString();
         })); 
         private int MonitorArma(TextBox textBox, bool runOnce, Form form, ProgressBar progressBar, bool gitPull, Button button)
         { 
             if (runOnce)
             {
-                if (!IsProcessRunning(ArmaProcessID)) form.Invoke(new Action(() =>
+                if (!DLL.HelperFunctions.IsProcessRunning(ArmaProcessID)) form.Invoke(new Action(() =>
                 {
                     ArmaProcessID = Run(textBox, form, progressBar, gitPull, button);//Are we meant to be alive but ain't?
                 }));
@@ -223,7 +241,7 @@ namespace ArmaServerBackend
                     while (IsArmaMonitored)
                     {
                         await Task.Delay(3000);//every 3 seconds give the cpu a little break 
-                        if (!IsProcessRunning(ArmaProcessID) && IsArmaMonitored) form.Invoke(new Action(() =>
+                        if (!DLL.HelperFunctions.IsProcessRunning(ArmaProcessID) && IsArmaMonitored) form.Invoke(new Action(() =>
                         {
                             ArmaProcessID = Run(textBox, form, progressBar, gitPull, button);//Are we meant to be alive but ain't?
                         })); 
@@ -238,20 +256,17 @@ namespace ArmaServerBackend
                 return ArmaProcessID;
             }
         }
-        private int Die(TextBox textBox)
-        {
-            if (ArmaProcessID == -1) return ArmaProcessID;
-
+        private int Die()
+        { 
             try
             {
                 IsArmaMonitored = false;//kill stayAlive Loop
                 IsFirstRun = true;
                 isOnline = false;
+                if (ArmaProcessID == -1) return ArmaProcessID;
                 Task.Delay(1000);//Wait a sec before killing Process
-
                 Process.GetProcessById(ArmaProcessID).Kill();//Kill Arma Instance
-                ArmaProcessID = -1;//Reset our var 
-                textBox.Text = ArmaProcessID.ToString();
+                ArmaProcessID = -1;//Reset our var
             }
             catch (ArgumentException) // Process already exited.
             {
@@ -273,29 +288,11 @@ namespace ArmaServerBackend
             }
             else
             { 
-                ArmaProcessID = Die(textBox);
+                ArmaProcessID = Die();
                 button.Text = "Start";
             }
     
             return ArmaProcessID.ToString();
-        }
-        internal static void Assert(bool val, string msg = "")
-        {
-            if (!val)
-            {
-                Console.WriteLine("Fatal error occured!");
-                if (msg != "")  Console.WriteLine("Error: " + msg);
-                Environment.Exit(1);
-            }
-        }
-        internal static void Assert(Exception ex)
-        {
-            if (ex != null)
-            {
-                Console.WriteLine("Fatal error occured!");
-                Console.WriteLine("Error: " + ex);
-                Environment.Exit(1);
-            }
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Windows.Forms;
 using ArmaServerBackend;
@@ -54,16 +55,16 @@ namespace ArmaServerFrontend
             PullOnStartButton.Checked = DLL.ConfigValues.serverSettings.PullOnStart;
         }
 
-        /// GitDirectory
+        // GitDirectory
         private void BrowseGitDirectory_Click(object sender, EventArgs e) => GitDirectoryPathBox.Text = DLL.HelperFunctions.GetFolderPathDialog();
         private void GitDirectoryPathBox_TextChanged(object sender, EventArgs e)
         {
             if (!preloaded) return;
             DLL.ConfigValues.GitDirectory = GitDirectoryPathBox.Text;
             DLL.ConfigFunctions.Save(); 
-        }
-         
-        /// Randomize
+        } 
+
+        // Randomize
         private void FncTagBox_TextChanged(object sender, EventArgs e)
         {
             if (!preloaded) return;
@@ -282,6 +283,7 @@ namespace ArmaServerFrontend
             bool updateConfig = false;
             ServerDirectoryPathBox.Text = DLL.ConfigValues.serverSettings.ServerDirectory;
             ServerArchitectureCombo.SelectedIndex = (DLL.ConfigValues.serverSettings.X64Architecture) ? 1 : 0;
+            PortBox.Text = DLL.ConfigValues.serverSettings.port.ToString();
             HostNameBox.Text = DLL.ConfigValues.serverSettings.hostName;
             ServerPasswordBox.Text = DLL.ConfigValues.serverSettings.password;
             AdminPasswordBox.Text = DLL.ConfigValues.serverSettings.passwordAdmin;
@@ -363,6 +365,14 @@ namespace ArmaServerFrontend
             EnableLoopbackCheckBox.Checked = DLL.ConfigValues.serverSettings.loopback;
             EnableNetlogCheckBox.Checked = (DLL.ConfigValues.serverSettings.enablePlayerDiag == 1);
             ExtReportLimitBox.Text = DLL.ConfigValues.serverSettings.callExtReportLimit.ToString();
+            SetIPCheckBox.Checked = DLL.ConfigValues.serverSettings.UseIP;
+            IPBox.Text = DLL.ConfigValues.serverSettings.IP;
+            IPBox.Enabled = DLL.ConfigValues.serverSettings.UseIP;
+            foreach (var language in Enum.GetValues(typeof(Language)))
+            {
+                LanguageComboBox.Items.Add(DLL.HelperFunctions.Capitalize(Enum.GetName(typeof(Language), language)));
+            }
+            LanguageComboBox.SelectedIndex = (int)Enum.ToObject(typeof(Language), DLL.ConfigValues.BasicSetting.language);
 
             //Update if needed
             if (updateConfig) DLL.ConfigFunctions.Save();
@@ -383,7 +393,16 @@ namespace ArmaServerFrontend
             if (!preloaded) return;
             DLL.ConfigValues.serverSettings.X64Architecture = (ServerArchitectureCombo.SelectedIndex == 1);
             DLL.ConfigFunctions.Save();
-        } 
+        }
+
+
+        // Port
+        private void PortBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.port = int.Parse(PortBox.Text);
+            DLL.ConfigFunctions.Save();
+        }
 
         //HostName
         private void HostNameBox_TextChanged(object sender, EventArgs e)
@@ -1079,6 +1098,36 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         }
 
+        //IP
+        private void SetIPCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            IPBox.Enabled = SetIPCheckBox.Checked;
+            DLL.ConfigValues.serverSettings.UseIP = SetIPCheckBox.Checked;
+            DLL.ConfigFunctions.Save();
+        } 
+        private void IPBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            //Changed event too Validated 
+        }
+        private void IPBox_Validated(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            if (!DLL.HelperFunctions.IsValidIP(IPBox.Text, out string IP, true)) IPBox.Text = IP;
+            DLL.ConfigValues.serverSettings.IP = IP;
+            DLL.ConfigFunctions.Save();
+        }
+
+        // Language
+        private void LanguageComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.BasicSetting.language = (Language)Enum.ToObject(typeof(Language), LanguageComboBox.SelectedIndex);
+            DLL.ConfigFunctions.Save();
+        }
+
+
         ///////////////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Server TAB
@@ -1140,7 +1189,14 @@ namespace ArmaServerFrontend
             DLL.ConfigValues.serverSettings.filePatchingExceptions = DLL.HelperFunctions.RemoveListBoxValue(FilePatchingExceptionsBox);
             DLL.ConfigFunctions.Save();
         }
- 
+
+        
+
+
+
+
+
+
 
 
 

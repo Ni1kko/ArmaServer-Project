@@ -88,6 +88,13 @@
             this.PullOnStartButton = new System.Windows.Forms.CheckBox();
             this.StartupProgressBar = new System.Windows.Forms.ProgressBar();
             this.ServerTab = new System.Windows.Forms.TabPage();
+            this.LanguageLabel = new System.Windows.Forms.Label();
+            this.LanguageComboBox = new System.Windows.Forms.ComboBox();
+            this.IPBox = new System.Windows.Forms.TextBox();
+            this.SetIPCheckBox = new System.Windows.Forms.CheckBox();
+            this.ArchitectureLabel = new System.Windows.Forms.Label();
+            this.PortLabel = new System.Windows.Forms.Label();
+            this.PortBox = new System.Windows.Forms.TextBox();
             this.ExtReportLimitLabel = new System.Windows.Forms.Label();
             this.ExtReportLimitBox = new System.Windows.Forms.TextBox();
             this.EnableNetlogCheckBox = new System.Windows.Forms.CheckBox();
@@ -840,6 +847,13 @@
             // 
             // ServerTab
             // 
+            this.ServerTab.Controls.Add(this.LanguageLabel);
+            this.ServerTab.Controls.Add(this.LanguageComboBox);
+            this.ServerTab.Controls.Add(this.IPBox);
+            this.ServerTab.Controls.Add(this.SetIPCheckBox);
+            this.ServerTab.Controls.Add(this.ArchitectureLabel);
+            this.ServerTab.Controls.Add(this.PortLabel);
+            this.ServerTab.Controls.Add(this.PortBox);
             this.ServerTab.Controls.Add(this.ExtReportLimitLabel);
             this.ServerTab.Controls.Add(this.ExtReportLimitBox);
             this.ServerTab.Controls.Add(this.EnableNetlogCheckBox);
@@ -930,6 +944,70 @@
             this.ServerTab.TabIndex = 1;
             this.ServerTab.Text = "Server Settings";
             this.ServerTab.UseVisualStyleBackColor = true;
+            // 
+            // LanguageLabel
+            // 
+            this.LanguageLabel.AutoSize = true;
+            this.LanguageLabel.Location = new System.Drawing.Point(365, 479);
+            this.LanguageLabel.Name = "LanguageLabel";
+            this.LanguageLabel.Size = new System.Drawing.Size(55, 13);
+            this.LanguageLabel.TabIndex = 111;
+            this.LanguageLabel.Text = "Language";
+            // 
+            // LanguageComboBox
+            // 
+            this.LanguageComboBox.FormattingEnabled = true;
+            this.LanguageComboBox.Location = new System.Drawing.Point(278, 476);
+            this.LanguageComboBox.Name = "LanguageComboBox";
+            this.LanguageComboBox.Size = new System.Drawing.Size(82, 21);
+            this.LanguageComboBox.TabIndex = 110;
+            this.LanguageComboBox.SelectedIndexChanged += new System.EventHandler(this.LanguageComboBox_SelectedIndexChanged);
+            // 
+            // IPBox
+            // 
+            this.IPBox.Location = new System.Drawing.Point(8, 478);
+            this.IPBox.Name = "IPBox";
+            this.IPBox.Size = new System.Drawing.Size(100, 20);
+            this.IPBox.TabIndex = 109;
+            this.IPBox.TextChanged += new System.EventHandler(this.IPBox_TextChanged);
+            this.IPBox.Validated += new System.EventHandler(this.IPBox_Validated);
+            // 
+            // SetIPCheckBox
+            // 
+            this.SetIPCheckBox.AutoSize = true;
+            this.SetIPCheckBox.Location = new System.Drawing.Point(119, 480);
+            this.SetIPCheckBox.Name = "SetIPCheckBox";
+            this.SetIPCheckBox.Size = new System.Drawing.Size(58, 17);
+            this.SetIPCheckBox.TabIndex = 108;
+            this.SetIPCheckBox.Text = "Use IP";
+            this.SetIPCheckBox.UseVisualStyleBackColor = true;
+            this.SetIPCheckBox.CheckedChanged += new System.EventHandler(this.SetIPCheckBox_CheckedChanged);
+            // 
+            // ArchitectureLabel
+            // 
+            this.ArchitectureLabel.AutoSize = true;
+            this.ArchitectureLabel.Location = new System.Drawing.Point(436, 10);
+            this.ArchitectureLabel.Name = "ArchitectureLabel";
+            this.ArchitectureLabel.Size = new System.Drawing.Size(64, 13);
+            this.ArchitectureLabel.TabIndex = 107;
+            this.ArchitectureLabel.Text = "Architecture";
+            // 
+            // PortLabel
+            // 
+            this.PortLabel.AutoSize = true;
+            this.PortLabel.Location = new System.Drawing.Point(507, 10);
+            this.PortLabel.Name = "PortLabel";
+            this.PortLabel.Size = new System.Drawing.Size(29, 13);
+            this.PortLabel.TabIndex = 106;
+            this.PortLabel.Text = " Port";
+            // 
+            // PortBox
+            // 
+            this.PortBox.Location = new System.Drawing.Point(510, 29);
+            this.PortBox.Name = "PortBox";
+            this.PortBox.Size = new System.Drawing.Size(48, 20);
+            this.PortBox.TabIndex = 105;
+            this.PortBox.TextChanged += new System.EventHandler(this.PortBox_TextChanged);
             // 
             // ExtReportLimitLabel
             // 
@@ -1301,9 +1379,9 @@
             this.ServerArchitectureCombo.Items.AddRange(new object[] {
             "x86",
             "x64"});
-            this.ServerArchitectureCombo.Location = new System.Drawing.Point(511, 28);
+            this.ServerArchitectureCombo.Location = new System.Drawing.Point(439, 28);
             this.ServerArchitectureCombo.Name = "ServerArchitectureCombo";
-            this.ServerArchitectureCombo.Size = new System.Drawing.Size(46, 21);
+            this.ServerArchitectureCombo.Size = new System.Drawing.Size(61, 21);
             this.ServerArchitectureCombo.TabIndex = 58;
             this.ServerArchitectureCombo.SelectedValueChanged += new System.EventHandler(this.ServerArchitectureCombo_SelectedValueChanged);
             // 
@@ -1700,13 +1778,13 @@
             // 
             this.ServerDirectoryPathBox.Location = new System.Drawing.Point(8, 29);
             this.ServerDirectoryPathBox.Name = "ServerDirectoryPathBox";
-            this.ServerDirectoryPathBox.Size = new System.Drawing.Size(405, 20);
+            this.ServerDirectoryPathBox.Size = new System.Drawing.Size(330, 20);
             this.ServerDirectoryPathBox.TabIndex = 18;
             this.ServerDirectoryPathBox.TextChanged += new System.EventHandler(this.ServerDirectoryPathBox_TextChanged);
             // 
             // BrowseServerDirectory
             // 
-            this.BrowseServerDirectory.Location = new System.Drawing.Point(419, 28);
+            this.BrowseServerDirectory.Location = new System.Drawing.Point(344, 28);
             this.BrowseServerDirectory.Name = "BrowseServerDirectory";
             this.BrowseServerDirectory.Size = new System.Drawing.Size(86, 21);
             this.BrowseServerDirectory.TabIndex = 19;
@@ -1814,7 +1892,7 @@
             this.Name = "Home";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "ArmaServerCQC";
+            this.Text = "ArmaServer";
             this.PboFileBox.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -1982,6 +2060,13 @@
         private System.Windows.Forms.Label ArmaProcessIDLabel;
         private System.Windows.Forms.Label ModTypeLabel;
         private System.Windows.Forms.ComboBox ModTypeCombo;
+        private System.Windows.Forms.Label PortLabel;
+        private System.Windows.Forms.TextBox PortBox;
+        private System.Windows.Forms.TextBox IPBox;
+        private System.Windows.Forms.CheckBox SetIPCheckBox;
+        private System.Windows.Forms.Label ArchitectureLabel;
+        private System.Windows.Forms.Label LanguageLabel;
+        private System.Windows.Forms.ComboBox LanguageComboBox;
     }
 }
 

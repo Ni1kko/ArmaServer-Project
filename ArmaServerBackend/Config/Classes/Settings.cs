@@ -56,7 +56,7 @@ namespace ArmaServerBackend
     }
     public class SettingsDefault
     {
-        private readonly string serverDirectory = @"C:\Arma3";
+        public readonly string serverDirectory = @"C:\Arma3";
         public Settings Values(string missionName, string functionTag) => new Settings()
         { 
             GitDirectory = @"C:\Github",

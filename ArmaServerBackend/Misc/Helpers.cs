@@ -17,7 +17,7 @@ namespace ArmaServerBackend
     public class Helpers
     {
         private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstvwxyz";
-        private static Random random = new Random();
+        private static readonly Random random = new Random();
 
         /// <summary>
         /// Get the assembly version number
@@ -53,7 +53,7 @@ namespace ArmaServerBackend
             if (FindSteamConfig(out path)) foreach (KeyValuePair<string, string> steamConfig in ParseSteamConfig(path)) LocalSteamIDS.Add(steamConfig.Value);
             return LocalSteamIDS;
         }
-
+         
         /// <summary>
         /// Parses steams config.vdf
         /// </summary>
@@ -168,7 +168,71 @@ namespace ArmaServerBackend
         /// <param name="steamID"></param>
         /// <returns>bool</returns>
         public bool IsSteamIDBattlEyeBanned(long steamID) => IsSteamIDBattlEyeBanned(steamID.ToString());
- 
+
+        /// <summary>
+        ///  Check if IPAdresses
+        /// </summary>
+        /// <param name="IPIn"></param>
+        /// <param name="IPOut"></param>
+        /// <param name="defaultOnBadParse"></param>
+        /// <returns></returns>
+        public bool IsValidIP(string IPIn, out string IPOut, bool defaultOnBadParse = false)
+        {
+            IPAddress IPParse;
+            if (IPAddress.TryParse(IPIn, out IPParse))
+            {
+                IPOut = IPParse.ToString();
+                return true;
+            }
+
+            IPOut = defaultOnBadParse ? "192.168.0.1" : "";
+            MessageBox.Show("Invalid IP Address");
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if given processID is running
+        /// </summary>
+        /// <param name="procID"></param>
+        /// <returns></returns>
+        public bool IsProcessRunning(int procID)
+        {
+            try { Process.GetProcessById(procID); }
+            catch (InvalidOperationException) { return false; }
+            catch (ArgumentException) { return false; }
+            return true;
+        }
+
+        /// <summary>
+        /// Get current HardwareID
+        /// </summary>
+        /// <returns></returns>
+        public static string GetMachineGuid(out Exception exception)
+        {
+            try
+            {
+                exception = null;
+                using RegistryKey localMachineX64View = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                using RegistryKey rk = localMachineX64View.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
+                if (rk == null) throw new KeyNotFoundException(string.Format("Key Not Found: {0}", @"SOFTWARE\Microsoft\Cryptography"));
+                object machineGuid = rk.GetValue("MachineGuid"); if (machineGuid == null) throw new IndexOutOfRangeException(string.Format("Index Not Found: {0}", "MachineGuid"));
+                return machineGuid.ToString();
+            } 
+            catch (KeyNotFoundException ex)
+            {
+                exception = ex;
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                exception = ex;
+            }
+            catch (Exception ex)
+            {
+                exception = ex; 
+            }
+            return "";
+        }
+
         /// <summary>
         /// Opens Folder Path Dialog and returns selected folder path
         /// </summary>
@@ -397,12 +461,11 @@ namespace ArmaServerBackend
         /// </summary>
         /// <param name="pbo"></param>
         /// <returns>bool</returns>
-        internal static bool DownloadPBO(PBOFile pbo)
-        {
-            Console.WriteLine("Pulling from git...");
-
+        internal static bool DownloadPBO(PBOFile pbo, out Exception exception)
+        { 
             try
             {
+                exception = null;
                 string token = pbo.GitToken.Replace("token ", "");
                 string gitPath = Path.Combine(DLL.ConfigValues.GitDirectory + "/git.zip");
 
@@ -410,22 +473,11 @@ namespace ArmaServerBackend
 
                 using (var webClient = new WebClient())
                 {
-                    if (pbo.GitServer == GitServer.GitHub)
-                    {
-                        webClient.Headers.Add("Authorization", "token " + token);
-                        Console.WriteLine($"{pbo.Name} using GitHub");
-                    }
-                    else if (pbo.GitServer == GitServer.GitLab)
-                    {
-                        webClient.Headers.Add("Private-Token", token);
-                        Console.WriteLine($"{pbo.Name} using GitLab");
-                    }
-                    else
-                    {
-                        throw new Exception("Unknown git type! 0 = GitHub, 1 = GitLab");
-                    }
+                    if (pbo.GitServer == GitServer.GitHub) webClient.Headers.Add("Authorization", "token " + token);
+                    else if (pbo.GitServer == GitServer.GitLab) webClient.Headers.Add("Private-Token", token); 
+                    else throw new Exception("Unknown GitServer");
                     webClient.DownloadFile(pbo.GitUrl, gitPath);
-                }
+                };
 
                 if (Directory.Exists(Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch))) Directory.Delete(DLL.ConfigValues.GitDirectory, true);
                 Directory.CreateDirectory(DLL.ConfigValues.GitDirectory);
@@ -451,7 +503,7 @@ namespace ArmaServerBackend
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error in download: " + ex);
+                exception = ex;
                 return false;
             }
         }
@@ -513,59 +565,93 @@ namespace ArmaServerBackend
         /// Randomizes PBO variables and functions
         /// </summary>
         /// <param name="pbo"></param>
-        internal static void RandomizePBO(PBOFile pbo)
+        /// <returns>bool</returns>
+        internal static bool RandomizePBO(PBOFile pbo, out Exception exception)
         {
-            string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
-            List<string> badExtensions = new List<string>() {
-                "ogg","paa","jpg","png","p3d"
+            exception = null;
+            List<string> badExtensions = new List<string>()
+            {
+                "ogg","paa","jpg","png","p3d","wav","tga","dds","rvmat","ods","fxy","lip","csv","kb","bik","bikb","html","htm","biedi"
             };
 
-            Console.WriteLine($"Begining {pbo.Name} obfuscation");
-
-            foreach (string file in (Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories)))
-            { 
-                if (IsExtension(file, badExtensions)) continue;
+            try
+            {
+                string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
                 
-                string outName = file;
-                string contents = File.ReadAllText(outName);
+                Console.WriteLine($"Begining {pbo.Name} obfuscation");
 
-                if (pbo.RandomizeGlobalVariables) contents = RenameVariables(contents, DLL._globalVars);
-                if (pbo.RandomizeLocalVariables) contents = RenameVariables(contents, DLL._localVars);
-                if (pbo.RandomizeFunctions) contents = RenameVariables(file, out outName, contents, DLL._scriptFuncs);
-                if (pbo.SingleLineFunctions && file.EndsWith(".sqf")) contents = OneLine(contents);
-
-                File.WriteAllText(file, contents);
-                if (file != outName)
+                foreach (string file in (Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories)))
                 {
-                    Console.WriteLine($"Filename Updated: {file} => {outName}");
-                    File.Move(file, outName);
+                    if (IsExtension(file, badExtensions)) continue;
+
+                    string outName = file;
+                    string contents = File.ReadAllText(outName);
+
+                    if (pbo.RandomizeGlobalVariables) contents = RenameVariables(contents, DLL._globalVars);
+                    if (pbo.RandomizeLocalVariables) contents = RenameVariables(contents, DLL._localVars);
+                    if (pbo.RandomizeFunctions) contents = RenameVariables(file, out outName, contents, DLL._scriptFuncs);
+                    if (pbo.SingleLineFunctions && IsExtension(file, "sqf")) contents = OneLine(contents);
+
+                    File.WriteAllText(file, contents);
+                    if (file == outName) continue;//Move to next file
+
+                    File.Move(file, outName); //Change file name
                 }
+
+                Console.WriteLine($"{pbo.Name} obfuscated.");
+                return true;
+            }
+            catch (IOException ex)
+            {
+                exception = ex;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
             }
 
-            Console.WriteLine($"{pbo.Name} obfuscated.");
+            return false;
         }
-         
+
         /// <summary>
         /// Pack a folder into .bpo format
         /// </summary>
         /// <param name="pbo"></param>
-        internal static void PackPBO(PBOFile pbo)
-        {
-
-            string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
-            string modPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.Name);
-
-            Console.WriteLine($"Packing {pbo.Name}\n");
-
-            PboFile pboFile = new PboFile();
-            foreach (string files in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+        /// <returns>bool</returns>
+        internal static bool PackPBO(PBOFile pbo, out Exception exception)
+        { 
+            try
             {
-                string path = files.Replace(folderPath, "");
-                if (path.StartsWith(@"\")) path = path.Substring(1);
-                string file = File.ReadAllText(files);
-                pboFile.AddEntry(path, Encoding.UTF8.GetBytes(file));
+                exception = null;
+                string folderPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.GitBranch);
+                string modPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.Name);
+
+                Console.WriteLine($"Packing {pbo.Name}\n");
+
+                PboFile pboFile = new PboFile();
+                foreach (string files in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+                {
+                    string path = files.Replace(folderPath, "");
+                    if (path.StartsWith(@"\")) path = path.Substring(1);
+                    string file = File.ReadAllText(files);
+                    pboFile.AddEntry(path, Encoding.UTF8.GetBytes(file));
+                }
+
+                string modDirectory = modPath + ".pbo";
+
+                pboFile.Save(modDirectory);
+                return File.Exists(modDirectory);
             }
-            pboFile.Save($"{modPath}.pbo");
+            catch (IOException ex)
+            {
+                exception = ex;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                return false;
+            }
         }
 
         /// <summary>
@@ -573,7 +659,7 @@ namespace ArmaServerBackend
         /// </summary>
         /// <param name="pbo"></param>
         /// <returns></returns>
-        internal static bool MovePBO(PBOFile pbo)
+        internal static bool MovePBO(PBOFile pbo, out Exception exception)
         {
             string modPath = Path.Combine(DLL.ConfigValues.GitDirectory, pbo.Name) + ".pbo";
             string serverPath = Path.Combine(pbo.ServerPath, pbo.Name) + ".pbo";
@@ -581,14 +667,14 @@ namespace ArmaServerBackend
 
             try
             {
+                exception = null;
                 File.Copy(modPath, serverPath, true);
                 Console.WriteLine($"Moved ({pbo.Name}): {modPath} => {serverPath}");
                 return File.Exists(serverPath);
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
-                Console.WriteLine("Error moving files");
-                Utilities.Assert(ex);
+                exception = ex;
                 return false;
             }
         }
