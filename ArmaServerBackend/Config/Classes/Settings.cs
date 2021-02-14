@@ -2,6 +2,9 @@
 
 namespace ArmaServerBackend
 {
+    /// <summary>
+    /// Main application setting
+    /// </summary>
     public class Settings
     {
         /// <summary>
@@ -56,14 +59,24 @@ namespace ArmaServerBackend
     }
     public class SettingsDefault
     {
-        public readonly string serverDirectory = @"C:\Arma3";
-        public Settings Values(string missionName, string functionTag) => new Settings()
+        /// <summary>
+        /// Default Directory
+        /// </summary>
+        public readonly string serverDirectory = @"C:\Arma3", gitDirectory = @"C:\Github";
+
+        /// <summary>
+        /// Creates default config
+        /// </summary>
+        /// <param name="PBOName">Name of pbo</param>
+        /// <param name="functionTag">Script TAG</param>
+        /// <returns>Settings</returns>
+        public Settings Values(string PBOName, string functionTag) => new Settings()
         { 
             GitDirectory = @"C:\Github",
             BasicSetting = new ServerBasicSettingDefault().Values(),
-            serverSettings = new ServerSettingsDefault().Values(serverDirectory,"Some Mission Name", missionName),
+            serverSettings = new ServerSettingsDefault().Values(serverDirectory,"Some Mission Name"),
             Pbos = new List<PBOFile>() {
-                new PboFilesDefault().Values(missionName, $"{serverDirectory}\\mpmissions", PboModType.Mission),
+                new PboFilesDefault().Values(PBOName, $"{serverDirectory}\\mpmissions", PboModType.Mission),
                 //new PboFilesDefault().Values("client_functions", $"{serverDirectory}\\addons", PboModType.ClientMod),
                 //new PboFilesDefault().Values("server_functions", $"{serverDirectory}\\addons", PboModType.ServerMod)
             },

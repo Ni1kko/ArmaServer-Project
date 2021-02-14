@@ -1,7 +1,7 @@
 ﻿namespace ArmaServerBackend
 {
     /// <summary>
-    /// https://community.bistudio.com/wiki/server.cfg
+    /// Kick Timeout Settings https://community.bistudio.com/wiki/server.cfg
     /// </summary>
     public class KickTimeout
     {

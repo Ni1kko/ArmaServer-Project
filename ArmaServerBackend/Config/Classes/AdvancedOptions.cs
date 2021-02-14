@@ -1,26 +1,24 @@
-﻿namespace ArmaServerBackend
+﻿using System.Collections.Generic;
+
+namespace ArmaServerBackend
 {
     /// <summary>
     /// https://community.bistudio.com/wiki/server.cfg
     /// </summary>
     public class AdvancedOptions
     {
-        /// <summary>
-        /// LogObjectNotFound - False to skip logging "Server: Object not found" messages
-        /// </summary>
-        public bool LogObjectNotFound { get; set; }
+        public List<ConfigSetting> configs { get; set; }
 
         /// <summary>
-        /// SkipDescriptionParsing - True to skip parsing of description.ext/mission.sqm. 
-        /// Will show pbo filename instead of configured missionName. 
-        /// OverviewText and such won't work, but loading the mission list is a lot faster when you have many missions
-        /// </summary>
-        public bool SkipDescriptionParsing { get; set; }
-
-        /// <summary>
-        /// ignoreMissionLoadErrors - When server log gets filled with too many logs entries the mission loading will be aborted and jump bad to mission selection, 
-        /// this forces the server to continue loading mission
-        /// </summary>
-        public bool ignoreMissionLoadErrors { get; set; }
+        /// Converts Advanced Options to user friendly string
+        /// </summary> 
+        /// <returns>string</returns> 
+        public override string ToString()
+        {
+            string options = "";
+            foreach (var config in configs) options += Helpers.NewTab() + config.ToString() + Helpers.NewLine();
+            if (options == "") options = Helpers.NewLine();
+            return options;
+        }
     }
 }

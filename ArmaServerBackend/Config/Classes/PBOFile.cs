@@ -1,5 +1,8 @@
 ﻿namespace ArmaServerBackend
 { 
+    /// <summary>
+    /// PBO Settings
+    /// </summary>
     public class PBOFile
     {
         /// <summary>
@@ -68,10 +71,13 @@
         public bool SingleLineFunctions { get; set; }
     }
 
+    /// <summary>
+    /// PBO Defualt Settings
+    /// </summary>
     public class PboFilesDefault 
     {
         /// <summary>
-        /// Define a new PBO with given params
+        /// Creates default config with given params
         /// </summary>
         /// <param name="_Name"></param>
         /// <param name="_ServerPath"></param>

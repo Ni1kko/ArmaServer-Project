@@ -2,15 +2,21 @@
 
 namespace ArmaServerBackend
 {
+    /// <summary>
+    /// Arma3server Launch Parameters
+    /// </summary>
     public class LaunchParameters
     {
-        public string clientMods { get; set; }
-
         /// <summary>
         ///Starts client with preferred language
         /// </summary>
         public Language language { get; set; }
-        
+
+        /// <summary>
+        /// Loads the specified sub-folders for different mods. Separated by semi-colons. Absolute path and multiple stacked folders are possible.
+        /// </summary>
+        public string clientMods { get; set; }
+         
         /// <summary>
         /// Loads the specified sub-folders for different server-side (not broadcasted to clients) mods. Separated by semi-colons. Absolute path and multiple stacked folders are possible. 
         /// </summary>
@@ -81,6 +87,11 @@ namespace ArmaServerBackend
             return System.IO.File.Exists(file) ? file : "";
         }
 
+        private string AddParameter(string parameter) => Helpers.NewSpace() + "-" + parameter;
+
+        private string AddParameter(string parameter, string value) => AddParameter(parameter) + "=" + value;
+       
+  
         /// <summary>
         /// Convert Parameters to user friendly string
         /// </summary>
@@ -90,42 +101,41 @@ namespace ArmaServerBackend
             //Start cmd line string
             string parameters = "";
 
-            //Add IP
-            if(DLL.ConfigValues.serverSettings.UseIP) parameters += " -ip=" + IP.ToString();
-
             //Add language
-            parameters += " -language=" + System.Enum.GetName(typeof(Language), language);
+            parameters += AddParameter("language", System.Enum.GetName(typeof(Language), language));
 
+            //Add IP
+            if (DLL.ConfigValues.serverSettings.UseIP) parameters += AddParameter("ip", IP.ToString());
+     
             //Add port
-            parameters += " -port=" + port.ToString();
+            parameters += AddParameter("port", port.ToString());
             
             //Add profiles
-            parameters += " -profiles=" + profiles;
-            parameters += " -name=" + name.Replace(" ", "");
+            parameters += AddParameter("profiles", profiles);
+            parameters += AddParameter("name", name.Replace(" ", ""));
 
             //Add .cfgs to cmd line
-            parameters += " -cfg=" + configBasic;
-            parameters += " -config=" + configServer;
+            parameters += AddParameter("cfg", configBasic);
+            parameters += AddParameter("config", configServer);
 
             //Add @mods to cmd line
-            if (serverMods != "") parameters += " -servermod=" + serverMods;
-            if (clientMods != "") parameters += " -mod=" + clientMods;
+            if (serverMods != "") parameters += AddParameter("servermod", serverMods);
+            if (clientMods != "") parameters += AddParameter("mod", clientMods);
 
             //Add other parmas to cmd line
-            if (enableHT) parameters += " -enableHT";
-            if (hugepages) parameters += " -hugepages";
+            if (enableHT) parameters += AddParameter("enableHT");
+            if (hugepages) parameters += AddParameter("hugepages");
 
             //Add persistent to cmd line
-            if (autoinit) parameters += " -autoinit";
+            if (autoinit) parameters += AddParameter("autoinit");
 
-            //Debug auto close arma
-            #if DEBUG
-                parameters += " -doNothing";
-                System.Console.WriteLine($"Launch Params: -doNothing Added Server will loop!");
-            #endif
+            //parameters without first space
+            parameters = parameters.Substring(1);
 
-            System.Console.WriteLine($"Launch Params: {parameters}");
-             
+            //debug
+            System.Console.WriteLine($"{(DLL.ConfigValues.serverSettings.X64Architecture ? "arma3server_x64.exe" : "arma3server.exe")} {parameters}");
+
+            //Return parameters without first space
             return parameters;
         }
     }

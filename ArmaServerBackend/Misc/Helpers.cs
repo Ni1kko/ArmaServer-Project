@@ -14,6 +14,9 @@ using System.Diagnostics;
 
 namespace ArmaServerBackend
 {
+    /// <summary>
+    /// Helper methods
+    /// </summary>
     public class Helpers
     {
         private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstvwxyz";
@@ -246,20 +249,6 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
-        /// Capitalize first letter of string
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public string Capitalize(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-            {
-                throw new ArgumentException("ARGH!");
-            }
-            return input.First().ToString().ToUpper(new CultureInfo("en-UK", false)) + string.Join("", input.Skip(1));
-        }
-
-        /// <summary>
         /// Add new string to list box
         /// </summary>
         /// <param name="listBox"></param>
@@ -312,21 +301,7 @@ namespace ArmaServerBackend
             foreach (string item in listBox.Items) InBox.Add(item);
             return InBox;
         }
-
-        /// <summary>
-        /// Checks to see if string contains a charater
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns>bool</returns>
-        public bool StringContainsChar(string text) => text.Any(x => char.IsLetter(x));
-       
-        /// <summary>
-        /// Checks to see if string contains a number
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns>bool</returns>
-        public bool StringContainsNumber(string text) => new Regex("^[0-9]*$").IsMatch(text);
-        
+         
         /// <summary>
         /// Checks too see if string is already listed
         /// </summary>
@@ -352,28 +327,33 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
-        /// Deletes all file inside directory then attempt to delete directory
+        /// Checks to see if string contains a charater
         /// </summary>
-        /// <param name="target_dir"></param>
-        internal static void DeleteDirectory(string target_dir)
+        /// <param name="text"></param>
+        /// <returns>bool</returns>
+        public bool StringContainsChar(string text) => text.Any(x => char.IsLetter(x));
+
+        /// <summary>
+        /// Checks to see if string contains a number
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns>bool</returns>
+        public bool StringContainsNumber(string text) => new Regex("^[0-9]*$").IsMatch(text);
+
+        /// <summary>
+        /// Capitalize first letter of string
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public string Capitalize(string input)
         {
-            string[] files = Directory.GetFiles(target_dir);
-            string[] dirs = Directory.GetDirectories(target_dir);
-
-            foreach (string file in files)
+            if (string.IsNullOrEmpty(input))
             {
-                File.SetAttributes(file, FileAttributes.Normal);
-                File.Delete(file);
+                throw new ArgumentException("ARGH!");
             }
-
-            foreach (string dir in dirs)
-            {
-                DeleteDirectory(dir);
-            }
-
-            Directory.Delete(target_dir, false);
+            return input.First().ToString().ToUpper(new CultureInfo("en-UK", false)) + string.Join("", input.Skip(1));
         }
-         
+
         /// <summary>
         /// Create new line(s)
         /// </summary>
@@ -405,6 +385,111 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
+        /// Create new space(s)
+        /// </summary>
+        /// <param name="numOfSpaces"></param>
+        /// <returns>string of new tab(s)</returns>
+        internal static string NewSpace(int numOfSpaces = 1) => new string(' ', numOfSpaces);
+
+        /// <summary> 
+        /// Initializes a line break 
+        /// </summary> 
+        /// <param name="text">Text to initiate the line break</param> 
+        /// <param name="pos">Position to break the line at</param> 
+        /// <param name="max">Maximum word to break line at</param> 
+        /// <returns>Int32</returns> 
+        private static int BreakLine(string text, int pos, int max)
+        {
+            int i = max;
+            while (i >= 0 && !char.IsWhiteSpace(text[pos + i])) i--;
+            if (i < 0) return max;
+            while (i >= 0 && char.IsWhiteSpace(text[pos + i])) i--;
+            return i + 1;
+        } 
+
+        /// <summary> 
+        /// Normalizes text 
+        /// </summary> 
+        /// <param name="text">Text to normalize</param> 
+        /// <returns>System.String</returns> 
+        public static string NormalizeText(string text)
+        {
+            var wrappedText = WrapText(text);
+            string[] lines = wrappedText.Split(new string[] { "\n" }, StringSplitOptions.None);
+            var maxlen = lines[0].Length;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var count = lines[i].Split(new string[] { "" }, StringSplitOptions.None).Length;
+                var spaceCount = maxlen - count;
+                var append = string.Empty;
+                for (var j = 0; j < spaceCount; j++) append += " ";
+                lines[i] = lines[i] + append;
+            }
+
+            var sb = new StringBuilder();
+            foreach (var line in lines) sb.Append(line + '\n');
+            return sb.ToString();
+        }
+
+        /// <summary> 
+        /// Performs a word wrap for text 
+        /// </summary> 
+        /// <param name="text">The text to perform the wrap on</param> 
+        /// <param name="wrapSize">Word count to start wrapping at</param> 
+        /// <returns>string</returns> 
+        public static string WrapText(string text, int wrapSize = 40)
+        {
+            int pos, next = 0;
+            var sb = new StringBuilder();
+            if (wrapSize < 1) return text;
+
+            for (pos = 0; pos < text.Length; pos = next)
+            {
+                int eol = text.IndexOf(NewLine(), pos);
+                next = (eol == -1) ? eol = text.Length : eol + NewLine().Length;
+
+                if (eol > pos) do
+                {
+                    int len = eol - pos;
+                    if (len > wrapSize) len = BreakLine(text, pos, wrapSize);
+
+                    sb.Append(text, pos, len);
+                    sb.Append(NewLine());
+                    pos += len;
+
+                    while (pos < eol && char.IsWhiteSpace(text[pos])) pos++;
+                } while (eol > pos);
+                else sb.Append(NewLine());
+            };
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Remove Comments form given file
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        internal static string RemoveComments(string file)
+        {
+            var blockComments = @"/\*(.*?)\*/";
+            var lineComments = @"//(.*?)\r?\n";
+            var strings = @"""((\\[^\n]|[^""\n])*)""";
+            var verbatimStrings = @"@(""[^""]*"")+";
+            return Regex.Replace(file, blockComments + "|" + lineComments + "|" + strings + "|" + verbatimStrings, line => {
+                if (line.Value.StartsWith("/*") || line.Value.StartsWith("//")) return line.Value.StartsWith("//") ? NewLine() : "";
+                return line.Value;// Keep the literal strings
+            }, RegexOptions.Singleline);
+        }
+
+        /// <summary>
+        /// Convert given file to one line
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        internal static string OneLine(string file) => RemoveComments(file).Replace("\n", " ").Replace("\r", "");
+
+        /// <summary>
         /// Creates Random string of given characters & length
         /// </summary>
         /// <param name="characters"></param>
@@ -431,30 +516,6 @@ namespace ArmaServerBackend
             if (variable.EndsWith("_")) variable = variable.TrimEnd('_');
             return variable;
         }
-
-        /// <summary>
-        /// Remove Comments form given file
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        internal static string RemoveComments(string file)
-        {
-            var blockComments = @"/\*(.*?)\*/";
-            var lineComments = @"//(.*?)\r?\n";
-            var strings = @"""((\\[^\n]|[^""\n])*)""";
-            var verbatimStrings = @"@(""[^""]*"")+";
-            return Regex.Replace(file, blockComments + "|" + lineComments + "|" + strings + "|" + verbatimStrings, line => {
-                if (line.Value.StartsWith("/*") || line.Value.StartsWith("//")) return line.Value.StartsWith("//") ? NewLine() : "";
-                return line.Value;// Keep the literal strings
-            }, RegexOptions.Singleline);
-        }
-
-        /// <summary>
-        /// Convert given file to one line
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        internal static string OneLine(string file) => RemoveComments(file).Replace("\n", " ").Replace("\r", "");
 
         /// <summary>
         /// Downloads PBO from a gitserver
@@ -507,6 +568,7 @@ namespace ArmaServerBackend
                 return false;
             }
         }
+        internal static bool DownloadPBO(PBOFile pbo) => DownloadPBO(pbo, out _);
 
         /// <summary>
         /// Changes Variable in given string from a dictionary
@@ -540,27 +602,7 @@ namespace ArmaServerBackend
 
             return contents;
         }
-
-        /// <summary>
-        /// Check to see if file is a specifc extension
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="extension"></param>
-        /// <returns>bool</returns>
-        internal static bool IsExtension(string file, string extension) => (file.EndsWith($".{extension.Replace(".", "")}"));
-
-        /// <summary>
-        /// Check to see if file is in a list of extensions
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="extensions"></param>
-        /// <returns>bool</returns>
-        internal static bool IsExtension(string file, List<string> extensions)
-        {
-            foreach (string extension in extensions) if (IsExtension(file, extension)) return true;
-            return false;
-        }
-
+         
         /// <summary>
         /// Randomizes PBO variables and functions
         /// </summary>
@@ -612,9 +654,10 @@ namespace ArmaServerBackend
 
             return false;
         }
-
+        internal static bool RandomizePBO(PBOFile pbo) => RandomizePBO(pbo, out _);
+        
         /// <summary>
-        /// Pack a folder into .bpo format
+        /// Pack a folder into .pbo format
         /// </summary>
         /// <param name="pbo"></param>
         /// <returns>bool</returns>
@@ -653,7 +696,8 @@ namespace ArmaServerBackend
                 return false;
             }
         }
-
+        internal static bool PackPBO(PBOFile pbo) => PackPBO(pbo, out _);
+        
         /// <summary>
         /// Moves a PBO to new location
         /// </summary>
@@ -678,6 +722,161 @@ namespace ArmaServerBackend
                 return false;
             }
         }
+        internal static bool MovePBO(PBOFile pbo) => MovePBO(pbo, out _);
 
+        /// <summary>
+        /// Check to see if file is a specifc extension
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="extension"></param>
+        /// <returns>bool</returns>
+        internal static bool IsExtension(string file, string extension) => (file.EndsWith($".{extension.Replace(".", "")}"));
+
+        /// <summary>
+        /// Check to see if file is in a list of extensions
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="extensions"></param>
+        /// <returns>bool</returns>
+        internal static bool IsExtension(string file, List<string> extensions)
+        {
+            foreach (string extension in extensions) if (IsExtension(file, extension)) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Deletes all file inside directory then attempt to delete directory
+        /// </summary>
+        /// <param name="target_dir"></param>
+        internal static void DeleteDirectory(string target_dir)
+        {
+            string[] files = Directory.GetFiles(target_dir);
+            string[] dirs = Directory.GetDirectories(target_dir);
+
+            foreach (string file in files)
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
+            }
+
+            foreach (string dir in dirs)
+            {
+                DeleteDirectory(dir);
+            }
+
+            Directory.Delete(target_dir, false);
+        }
+
+        /// <summary>
+        /// Coppy array of file to new location
+        /// </summary>
+        /// <param name="targetPath"></param>
+        /// <param name="fileArray"></param>
+        private bool CopyFiles(string targetPath, string[] fileArray, out Exception exception)
+        {
+            exception = null;
+            bool didCopy = true;
+            try
+            {
+                foreach (var file in fileArray)
+                {
+                    if (!File.Exists(file))
+                    {
+                        didCopy = false;
+                        continue;
+                    }
+                    var target = Path.Combine(targetPath, file.Substring(file.LastIndexOf("\\", StringComparison.Ordinal) + 1));
+                    File.Copy(file, target, true);
+                    didCopy = File.Exists(target);
+                    if (!didCopy) return false;
+                }
+            }
+            catch (IOException ex)
+            {
+                exception = ex;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+
+            return (exception == null) ? didCopy : false;
+        }
+
+        /// <summary>
+        /// Gets a list of all RPT files
+        /// </summary>
+        /// <returns>List of RPT's</returns>
+        private List<string> GetAllRPTFiles()
+        {
+            var path = Path.Combine(DLL.ConfigValues.serverSettings.ServerDirectory, "A3Config");
+            List<string> RPTFiles = new DirectoryInfo(path).GetFiles("*.rpt").Select(
+                info => Path.Combine(path, info.Name) 
+            ).ToList();
+            if (RPTFiles.Count < 1) return new List<string>();
+            RPTFiles.Sort();
+            return RPTFiles;
+        } 
+
+        /// <summary>
+        /// Returns latest RPT file
+        /// </summary>
+        /// <returns>filePath</returns>
+        private string GetLatestRPT()
+        {
+            List<string> RPTFiles = GetAllRPTFiles();
+            if (RPTFiles.Count < 1) return "";
+            string file = RPTFiles[RPTFiles.Count - 1];
+            if (string.IsNullOrEmpty(file) || !File.Exists(file)) return "";
+            return file;
+        }
+
+        /// <summary>
+        /// Deletes latest RPT file
+        /// </summary>
+        /// <returns>true/false</returns>
+        public bool DeleteLatestRPT()
+        {
+            string file = GetLatestRPT();
+            if (string.IsNullOrEmpty(file)) return false;
+            File.Delete(file);
+            return File.Exists(file) ? false : true;
+        }
+
+        /// <summary>
+        /// Deletes older RPT files
+        /// </summary>
+        /// <returns>true/false</returns>
+        public bool DeleteOlderRPTFiles()
+        {
+            List<string> RPTFiles = GetAllRPTFiles();
+            if (RPTFiles.Count < 1) return false;
+            foreach (string filePath in RPTFiles) if (filePath != RPTFiles[RPTFiles.Count - 1]) File.Delete(filePath);
+            return true;
+        }
+
+        /// <summary>
+        /// Deletes All RPT files
+        /// </summary>
+        /// <returns>true/false</returns>
+        public bool DeleteAllRPTFiles()
+        {
+            List<string> RPTFiles = GetAllRPTFiles();
+            if (RPTFiles.Count < 1) return false;
+            foreach (string filePath in RPTFiles) File.Delete(filePath);
+            return true;
+        }
+
+        /// <summary>
+        /// Opens RPT file in registered code editor
+        /// </summary>
+        /// <returns></returns>
+        public bool OpenLatestRPT()
+        {
+            string file = GetLatestRPT();
+            if (string.IsNullOrEmpty(file)) return false;
+            Process.Start(file);
+            return true;
+        }
     }
 }

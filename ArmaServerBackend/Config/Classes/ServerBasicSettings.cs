@@ -3,7 +3,7 @@
 namespace ArmaServerBackend
 {
     /// <summary>
-    /// https://community.bistudio.com/wiki/basic.cfg
+    /// ServerBasic Settings
     /// </summary>
     public class ServerBasicSettings
     {
@@ -157,8 +157,15 @@ namespace ArmaServerBackend
         }
     }
 
+    /// <summary>
+    /// ServerBasicSetting Defualt Settings
+    /// </summary>
     public class ServerBasicSettingDefault
     {
+        /// <summary>
+        /// Creates default config
+        /// </summary>
+        /// <returns>ServerBasicSettings</returns>
         public ServerBasicSettings Values() => new ServerBasicSettings()
         {
             language = 0,

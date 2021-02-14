@@ -1,8 +1,8 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,13 +10,38 @@ using System.Windows.Forms;
 
 namespace ArmaServerBackend
 {
+    /// <summary>
+    /// More advanced helper methods, mainly contains methods that are less fequently used
+    /// </summary>
     public class Utilities
-    {
+    {   //TODO: Revise this class at somepoint got a litle messy getting it working
+
+        /// <summary>
+        /// Current ProcessID of running arma3server
+        /// </summary>
         private int ArmaProcessID = -1;
-        private bool isOnline = false, IsArmaMonitored = false, IsFirstRun = true;
+
+        /// <summary>
+        /// Textbox refrence to where ArmaProcessID will be shown
+        /// </summary>
         private TextBox textBox = null;
+
+        /// <summary>
+        /// Original app title
+        /// </summary>
         private string title = "";
 
+        /// <summary>
+        /// Handles arma3server staus
+        /// </summary>
+        private bool isOnline = false, IsArmaMonitored = false, IsFirstRun = true;
+
+        /// <summary>
+        /// Downloads, Randomizes, Packs and Moves all files from gitserver
+        /// </summary>
+        /// <param name="form">mainForm where this was called from, required for title status</param>
+        /// <param name="progressBar">progressBar to show current progress</param>
+        /// <returns>true/false</returns>
         private bool PullAndRandomize(Form form, ProgressBar progressBar)
         {
             progressBar.Value = 0;//0% 
@@ -133,7 +158,17 @@ namespace ArmaServerBackend
             //Return
             return true;
 
-        } 
+        }
+
+        /// <summary>
+        /// Starts arma3server
+        /// </summary>
+        /// <param name="_textBox">textBox too witch ArmaProcessID will be displayed in</param>
+        /// <param name="form">mainForm where this was called from, required for title status</param>
+        /// <param name="progressBar">progressBar to show current progress</param>
+        /// <param name="gitPull">true if to fetch git on launch</param>
+        /// <param name="button">button of witch the method is called from, required to lock button to prevent multiple launches</param>
+        /// <returns>int ArmaProcessID</returns>
         private int Run(TextBox _textBox, Form form, ProgressBar progressBar, bool gitPull, Button button)
         {
             isOnline = true;
@@ -150,6 +185,8 @@ namespace ArmaServerBackend
                     form.Text = $"{title} | Creating {(index == 0 ? "Basic" : "Server")} Config";
                     DLL.ConfigFunctions.CreateA3ConfigFile(DLL.ConfigValues, index);
                 };
+                form.Text = $"{title} | Creating A3 Profile";
+                DLL.ConfigFunctions.CreateA3ProfileFile(DLL.ConfigValues);
                 Thread.Sleep(5000);//Timeout
 
                 //Update local with git
@@ -158,12 +195,12 @@ namespace ArmaServerBackend
                     if (!PullAndRandomize(form, progressBar))
                     {
                         //reset everything
-                        ArmaProcessID = -1;
+                        ArmaProcessID = Die();
                         form.Text = title;
                         progressBar.Value = 0;
                         button.Text = "Start";
                         button.Enabled = true;
-                        return Die();
+                        return ArmaProcessID;
                     };
                 };
                 
@@ -195,7 +232,7 @@ namespace ArmaServerBackend
                 EnableRaisingEvents = true
             };
 
-            //Subscribe Our Exit Function
+            //Subscribe Our Exit/Crash method
             serverProcess.Exited += OnDie;
 
             //Launch Process
@@ -210,13 +247,18 @@ namespace ArmaServerBackend
 
             //Return ProcessID
             return ArmaProcessID;
-        } 
-        private void OnDie(object sender, EventArgs e) => textBox.Invoke(new Action(() =>
-        {
-            isOnline = false;
-            ArmaProcessID = -1;//Reset our var 
-            textBox.Text = Die().ToString();
-        })); 
+        }
+
+        /// <summary>
+        /// Keeps arma3server running
+        /// </summary>
+        /// <param name="textBox">textBox too witch ArmaProcessID will be displayed in</param>
+        /// <param name="runOnce">runOnce if true will not start the monitor loop</param>
+        /// <param name="form">mainForm where this was called from, required for title status</param>
+        /// <param name="progressBar">progressBar to show current progress</param>
+        /// <param name="gitPull">true if to fetch git on launch</param>
+        /// <param name="button">button of witch the method is called from, required to lock button to prevent multiple launches</param>
+        /// <returns>int ArmaProcessID</returns>
         private int MonitorArma(TextBox textBox, bool runOnce, Form form, ProgressBar progressBar, bool gitPull, Button button)
         { 
             if (runOnce)
@@ -256,6 +298,23 @@ namespace ArmaServerBackend
                 return ArmaProcessID;
             }
         }
+
+        /// <summary>
+        /// Handles arma3server crashing/exiting without user stoping via Utilities.Die();
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnDie(object sender, EventArgs e) => textBox.Invoke(new Action(() =>
+        {
+            isOnline = false;
+            ArmaProcessID = -1;//Reset our var 
+            textBox.Text = Die().ToString();
+        }));
+
+        /// <summary>
+        /// Stops arma3server and resets vars
+        /// </summary>
+        /// <returns>int ArmaProcessID</returns>
         private int Die()
         { 
             try
@@ -275,6 +334,17 @@ namespace ArmaServerBackend
 
             return ArmaProcessID;
         }
+
+        /// <summary>
+        /// Start/Stop arma3server instance
+        /// </summary>
+        /// <param name="textBox">textBox too witch ArmaProcessID will be displayed in</param>
+        /// <param name="runOnce">runOnce if true will not start the monitor loop</param>
+        /// <param name="form">mainForm where this was called from, required for title status</param>
+        /// <param name="progressBar">progressBar to show current progress</param>
+        /// <param name="gitPull">true if to fetch git on launch</param>
+        /// <param name="button">button of witch the method is called from, required to lock button to prevent multiple launches</param>
+        /// <returns>string ArmaProcessID</returns>
         public string SwitchOnlineState(TextBox textBox, bool runOnce, Form form, ProgressBar progressBar, bool gitPull, Button button)//Handles Online State. Returns: given int as string
         {
             //isOnline = isOnline ? false : true;

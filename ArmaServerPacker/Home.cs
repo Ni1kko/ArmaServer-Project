@@ -262,7 +262,7 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         } 
         private void LaunchButton_Click(object sender, EventArgs e)
-        { 
+        {
             ArmaProcessIDBox.Text = DLL.UtilityFunctions.SwitchOnlineState(
                 ArmaProcessIDBox,
                 false,//runOnce

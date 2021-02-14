@@ -101,6 +101,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\Classes\AdvancedOptions.cs" />
+    <Compile Include="Config\Classes\ConfigSetting.cs" />
+    <Compile Include="Config\Classes\DifficultySetting.cs" />
     <Compile Include="Config\Classes\KickTimeout.cs" />
     <Compile Include="Config\Classes\LaunchParameters.cs" />
     <Compile Include="Config\Classes\PBOFile.cs" />

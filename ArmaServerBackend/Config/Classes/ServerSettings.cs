@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 
 namespace ArmaServerBackend
 {
     /// <summary>
-    /// https://community.bistudio.com/wiki/server.cfg
+    /// Main arma3server settings
     /// </summary>
     public class ServerSettings
     {
@@ -368,6 +369,11 @@ namespace ArmaServerBackend
         public AdvancedOptions advancedOptions { get; set; }
 
         /// <summary>
+        /// Server Difficulty Settings
+        /// </summary>
+        public DifficultySetting difficultySetting { get; set; }
+
+        /// <summary>
         /// Converts Message of the day to user friendly string
         /// </summary>
         /// <param name="Motd"></param>
@@ -382,21 +388,7 @@ namespace ArmaServerBackend
             }
             return motd;
         }
-
-        /// <summary>
-        /// Converts Advanced Options to user friendly string
-        /// </summary>
-        /// <param name="advancedOptions"></param>
-        /// <returns>string</returns>
-        private string GetAdvancedOptions(AdvancedOptions advancedOptions)
-        {
-            string options = "";
-            options += Helpers.NewTab() + "LogObjectNotFound = " + advancedOptions.LogObjectNotFound.ToString().ToLower() + ";" + Helpers.NewLine();
-            options += Helpers.NewTab() + "SkipDescriptionParsing = " + advancedOptions.SkipDescriptionParsing.ToString().ToLower() + ";" + Helpers.NewLine();
-            options += Helpers.NewTab() + "ignoreMissionLoadErrors = " + advancedOptions.ignoreMissionLoadErrors.ToString().ToLower() + ";";
-            return options;
-        }
-
+        
         /// <summary>
         /// Gets Mission PBO(s) & Converts to user friendly string
         /// </summary>
@@ -425,7 +417,7 @@ namespace ArmaServerBackend
             }
             return missionString;
         }
-
+        
         /// <summary>
         /// Convert Config to user friendly string
         /// </summary>
@@ -495,7 +487,7 @@ namespace ArmaServerBackend
                             "onDifferentData = \"" + onDifferentData + "\";" + Helpers.NewLine() +
                             "onUnsignedData = \"" + onUnsignedData + "\";" + Helpers.NewLine() +
                             "regularCheck = \"" + regularCheck + "\";" + Helpers.NewLine(2) +
-                            "class AdvancedOptions" + Helpers.NewLine() + "{" + Helpers.NewLine() + GetAdvancedOptions(advancedOptions) + Helpers.NewLine() + "};" + Helpers.NewLine(2) +
+                            "class AdvancedOptions" + Helpers.NewLine() + "{" + Helpers.NewLine() + advancedOptions.ToString() +  "};" + Helpers.NewLine(2) +
                             "class Missions" + Helpers.NewLine() + "{" + Helpers.NewLine() + GetMissions() + Helpers.NewLine() + "};";
 
 
@@ -506,7 +498,14 @@ namespace ArmaServerBackend
     public class ServerSettingsDefault
     {
         public readonly static string consoleLogFile = "server_console";
-        public ServerSettings Values(string serverDirectory, string _hostName, string _missionName) => new ServerSettings()
+
+        /// <summary>
+        /// Creates default config
+        /// </summary>
+        /// <param name="serverDirectory">Default Server Directory </param>
+        /// <param name="_hostName">Default host name</param>
+        /// <returns>ServerSettings</returns>
+        public ServerSettings Values(string serverDirectory, string _hostName) => new ServerSettings()
         {
             ServerDirectory = serverDirectory,
             X64Architecture = false,
@@ -569,9 +568,12 @@ namespace ArmaServerBackend
             localIps = new List<string>(),
             advancedOptions = new AdvancedOptions()
             {
-                LogObjectNotFound = true,
-                SkipDescriptionParsing = false,
-                ignoreMissionLoadErrors = false
+                configs = new List<ConfigSetting>()
+                {
+                    new ConfigSetting("LogObjectNotFound", true),
+                    new ConfigSetting("SkipDescriptionParsing", false),
+                    new ConfigSetting("ignoreMissionLoadErrors", false)
+                } 
             },
             kickTimeout = new List<KickTimeout>() { 
                 new KickTimeout()
@@ -593,6 +595,35 @@ namespace ArmaServerBackend
                 {
                     type = KickID.harmless,//harmless kick (wrong addons, steam timeout or checks, signatures, content etc.)
                     time = 0// -1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
+                }
+            },
+            difficultySetting = new DifficultySetting() {
+                missionDifficulty = MissionDifficulty.custom,
+                SkillAI = 0.75m,
+                PrecisionAI = 0.55m,
+                AILevelPreset = 3,
+                DifficultyItems = new List<ConfigSetting>()
+                {
+                    new ConfigSetting("reducedDamage", 0),
+                    new ConfigSetting("groupIndicators", 1),
+                    new ConfigSetting("friendlyTags", 1),
+                    new ConfigSetting("enemyTags", 1),
+                    new ConfigSetting("detectedMines", 1),
+                    new ConfigSetting("commands", 1),
+                    new ConfigSetting("waypoints", 1),
+                    new ConfigSetting("weaponInfo", 1),
+                    new ConfigSetting("stanceIndicator", 1),
+                    new ConfigSetting("staminaBar", 1),
+                    new ConfigSetting("weaponCrosshair", 1),
+                    new ConfigSetting("visionAid", 1),
+                    new ConfigSetting("thirdPersonView", 1),
+                    new ConfigSetting("cameraShake", 1),
+                    new ConfigSetting("scoreTable", 1),
+                    new ConfigSetting("deathMessages", 1),
+                    new ConfigSetting("vonID", 1),
+                    new ConfigSetting("mapContent", 1),
+                    new ConfigSetting("autoReport", 1),
+                    new ConfigSetting("multipleSaves", 1)
                 }
             }
         };
