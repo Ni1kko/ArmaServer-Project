@@ -245,7 +245,21 @@ namespace ArmaServerBackend
             using (var folderBrowserDialog = new FolderBrowserDialog())
             { 
                 return (folderBrowserDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath)) ? folderBrowserDialog.SelectedPath : "";
-            }
+            };
+        }
+
+        /// <summary>
+        /// Opens Folder File Dialog and returns selected P3D
+        /// </summary>
+        /// <returns></returns>
+        public string GetP3DPathDialog()
+        {
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "[binarized P3D's] | *.p3d";
+                if (openFileDialog.ShowDialog() != DialogResult.OK) return ""; 
+                return openFileDialog.FileName;
+            }; 
         }
 
         /// <summary>
@@ -293,9 +307,10 @@ namespace ArmaServerBackend
         /// <param name="listBox"></param>
         /// <param name="SelectedItem"></param>
         /// <returns>List<string></returns>
-        public List<string> RemoveListBoxValue(ListBox listBox, int SelectedItem = -1)
-        {
-            if (SelectedItem < 0) SelectedItem = listBox.SelectedIndex;
+        public List<string> RemoveListBoxValue(ListBox listBox, int SelectedItem = -2)
+        { 
+            if (SelectedItem == -2) SelectedItem = listBox.SelectedIndex;
+            if (SelectedItem == -1) return new List<string>();
             listBox.Items.RemoveAt(SelectedItem);
             List<string> InBox = new List<string>();
             foreach (string item in listBox.Items) InBox.Add(item);
@@ -354,6 +369,19 @@ namespace ArmaServerBackend
             return input.First().ToString().ToUpper(new CultureInfo("en-UK", false)) + string.Join("", input.Skip(1));
         }
 
+        public static string NewEscape(EscapeType escape) => escape switch
+        {
+            EscapeType.Nothing => "",
+            EscapeType.DoubleQuotationMark => "\"",
+            EscapeType.SingleQuotationMark => "\'",
+            EscapeType.Newline => "\n",
+            EscapeType.CarriageReturn => "\r",
+            EscapeType.HorizontalTab => "\t",
+            EscapeType.VerticalTab => "\v",
+            EscapeType.Backslash => "\\",
+            _ => NewEscape(EscapeType.DoubleQuotationMark),
+        };
+
         /// <summary>
         /// Create new line(s)
         /// </summary>
@@ -364,7 +392,7 @@ namespace ArmaServerBackend
             var newLines = "";
             for (var i = 0; i < numOfLines; i++)
             {
-                newLines += Environment.NewLine;
+                newLines += NewEscape(EscapeType.Newline);
             }
             return newLines;
         }
@@ -379,7 +407,7 @@ namespace ArmaServerBackend
             var newLines = "";
             for (var i = 0; i < numOfTabs; i++)
             {
-                newLines += "\t";
+                newLines += NewEscape(EscapeType.HorizontalTab);
             }
             return newLines;
         }
@@ -390,6 +418,26 @@ namespace ArmaServerBackend
         /// <param name="numOfSpaces"></param>
         /// <returns>string of new tab(s)</returns>
         internal static string NewSpace(int numOfSpaces = 1) => new string(' ', numOfSpaces);
+
+        /// <summary>
+        /// Add new option
+        /// </summary>
+        /// <param name="option"></param>
+        /// <param name="value"></param>
+        /// <param name="escape"></param>
+        /// <param name="numofescape"></param>
+        /// <returns></returns>
+        internal string NewOption(string option, string value, EscapeType escape = EscapeType.Nothing, int numofescape = 1)
+        {
+            if (escape != EscapeType.Nothing)
+            {
+                var escapeString = "";
+                for (var i = 0; i < numofescape; i++) escapeString += NewEscape(escape);
+                value = escapeString + value + escapeString;
+            };
+            option += " = " + value + ";" + NewEscape(EscapeType.Newline);
+            return option;
+        }
 
         /// <summary> 
         /// Initializes a line break 
@@ -487,7 +535,7 @@ namespace ArmaServerBackend
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        internal static string OneLine(string file) => RemoveComments(file).Replace("\n", " ").Replace("\r", "");
+        internal static string OneLine(string file) => RemoveComments(file).Replace(NewEscape(EscapeType.Newline), NewSpace()).Replace(NewEscape(EscapeType.CarriageReturn), "");
 
         /// <summary>
         /// Creates Random string of given characters & length
@@ -803,6 +851,12 @@ namespace ArmaServerBackend
             return (exception == null) ? didCopy : false;
         }
 
+        /// <summary>
+        /// Write Configs
+        /// </summary>
+        /// <param name="file"></param> 
+        internal virtual void WriteFile(string file, string conetnts) => File.WriteAllText(file, conetnts, Encoding.Unicode);
+        
         /// <summary>
         /// Gets a list of all RPT files
         /// </summary>

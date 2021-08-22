@@ -58,6 +58,10 @@
       <HintPath>Embedded\BattleNET.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="BisDll">
+      <HintPath>Embedded\BisDll.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Microsoft.Win32.Registry">
       <HintPath>Embedded\Microsoft.Win32.Registry.dll</HintPath>
       <Private>False</Private>
@@ -78,6 +82,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
@@ -102,13 +107,14 @@
   <ItemGroup>
     <Compile Include="Config\Classes\AdvancedOptions.cs" />
     <Compile Include="Config\Classes\ConfigSetting.cs" />
-    <Compile Include="Config\Classes\DifficultySetting.cs" />
+    <Compile Include="Config\Classes\ServerProfile.cs" />
     <Compile Include="Config\Classes\KickTimeout.cs" />
     <Compile Include="Config\Classes\LaunchParameters.cs" />
     <Compile Include="Config\Classes\PBOFile.cs" />
     <Compile Include="Config\Classes\Settings.cs" />
     <Compile Include="Config\Config.cs" />
     <Compile Include="Enums\BEPort.cs" />
+    <Compile Include="Enums\EscapeType.cs" />
     <Compile Include="Enums\GitServer.cs" />
     <Compile Include="DLL.cs" />
     <Compile Include="Embedded\Embedded.cs" />
@@ -117,7 +123,6 @@
     <Compile Include="Enums\MissionDifficulty.cs" />
     <Compile Include="Enums\PboModType.cs" />
     <Compile Include="Misc\BEGuid.cs" />
-    <Compile Include="Misc\Components.cs" />
     <Compile Include="Misc\Helpers.cs" />
     <Compile Include="Misc\Pbo\PboCompressionStream.cs" />
     <Compile Include="Misc\Pbo\PboEntry.cs" />
@@ -143,8 +148,17 @@
   <ItemGroup>
     <EmbeddedResource Include="Embedded\BattleNET.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Embedded\BisDll.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Embedded\MetroFramework.Design.dll" />
+    <EmbeddedResource Include="Embedded\MetroFramework.dll" />
+    <EmbeddedResource Include="Embedded\MetroFramework.Fonts.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" Eazfuscator.NET.exe "$(TargetPath)" --msbuild-project-path "$(ProjectPath)" --msbuild-project-configuration "$(ConfigurationName)" --msbuild-project-platform "$(PlatformName)" --msbuild-solution-path "$(SolutionPath)" -n --newline-flush -v 2018.2</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

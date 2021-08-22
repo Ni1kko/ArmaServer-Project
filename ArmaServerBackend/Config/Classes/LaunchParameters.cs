@@ -5,7 +5,7 @@ namespace ArmaServerBackend
     /// <summary>
     /// Arma3server Launch Parameters
     /// </summary>
-    public class LaunchParameters
+    public class LaunchParameters : Helpers
     {
         /// <summary>
         ///Starts client with preferred language
@@ -67,6 +67,12 @@ namespace ArmaServerBackend
         /// </summary>
         public bool autoinit { get; set; }
 
+        /// <summary>
+        /// Get specified mods matching type
+        /// </summary>
+        /// <param name="pboFiles"></param>
+        /// <param name="pboModType"></param>
+        /// <returns></returns>
         internal static string GetMods(System.Collections.Generic.List<PBOFile> pboFiles, PboModType pboModType)
         {
             var modString = "";
@@ -79,6 +85,13 @@ namespace ArmaServerBackend
             if (modString.EndsWith(";")) modString = modString.TrimEnd(';');
             return modString;
         }
+        
+        /// <summary>
+        /// Get Config path
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
         internal static string GetA3Config(Settings settings, int config = 0)
         {
             if (config != 0 && config != 1) return "";
@@ -87,8 +100,19 @@ namespace ArmaServerBackend
             return System.IO.File.Exists(file) ? file : "";
         }
 
-        private string AddParameter(string parameter) => Helpers.NewSpace() + "-" + parameter;
+        /// <summary>
+        /// Constructs new parameter
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        private string AddParameter(string parameter) => NewSpace() + "-" + parameter;
 
+        /// <summary>
+        /// Constructs new parameter with value
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private string AddParameter(string parameter, string value) => AddParameter(parameter) + "=" + value;
        
   

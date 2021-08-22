@@ -12,6 +12,9 @@ namespace ArmaServerFrontend
         internal static readonly string APPpackageName = assembly.GetName().Name;
         internal static readonly string DLLpackageName = DLL.AssemblyFunctions.assembly.GetName().Name;
 
+        private static void OnApplicationExit(object sender, EventArgs e) => BackendDLL.OnDLLExit(sender, e, true);
+        
+
         [STAThread]
         private static void Main()
         {
@@ -20,6 +23,7 @@ namespace ArmaServerFrontend
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new Home());
+                Application.ApplicationExit += new EventHandler(OnApplicationExit);
             }
             else
             {

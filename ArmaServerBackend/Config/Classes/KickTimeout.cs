@@ -1,10 +1,17 @@
-﻿namespace ArmaServerBackend
+﻿using System;
+
+namespace ArmaServerBackend
 {
     /// <summary>
     /// Kick Timeout Settings https://community.bistudio.com/wiki/server.cfg
     /// </summary>
-    public class KickTimeout
+    public class KickTimeout : Helpers
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool enabled { get; set; }
+
         /// <summary>
         /// kickID (type to determine from where the kick originated e.g. admin or votekick etc.)
         ///0 - manual kick(vote kick, admin kick, bruteforce detection etc.)
@@ -21,5 +28,23 @@
         /// -2 until serverRestart
         /// </summary>
         public int time { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="_type"></param>
+        /// <param name="_time"></param>
+        public KickTimeout(bool _enabled, KickID _type, int _time)
+        {
+            enabled = _enabled;
+            type = _type;
+            time = _time;
+        }
+
+        /// <summary>
+        /// Converts KickTimeout to user friendly string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString() => enabled ? "{" + Convert.ToInt32(Enum.ToObject(typeof(KickID), type)).ToString() + "," + NewSpace() + time.ToString() + "}" : "";
     }
 }

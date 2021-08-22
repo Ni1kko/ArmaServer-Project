@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Net;
 
 namespace ArmaServerBackend
@@ -7,7 +8,7 @@ namespace ArmaServerBackend
     /// <summary>
     /// Main arma3server settings
     /// </summary>
-    public class ServerSettings
+    public class ServerSettings : Helpers
     {
         /// <summary>
         /// Armaserver root directory
@@ -116,6 +117,11 @@ namespace ArmaServerBackend
         public double voteThreshold { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public List<string> VotingCommands { get; set; }
+
+        /// <summary>
         /// Enables or disables the Voice over Net. Default = 0. 
         /// </summary>
         public int disableVoN { get; set; }
@@ -214,12 +220,6 @@ namespace ArmaServerBackend
         /// Script to be ran when different data found
         /// </summary>
         public string onDifferentData { get; set; }
-
-        /// <summary>
-        /// Script to checks files from time to time by hashing them and comparing the hash to the hash values of the clients.
-        /// !! Deprecated !!
-        /// </summary>
-        public string regularCheck { get; set; }// TODO: remove this
 
         /// <summary>
         /// Prevent or allow file patching for the clients (including the HC) (since Arma 3 1.49+)
@@ -360,139 +360,130 @@ namespace ArmaServerBackend
         /// <summary>
         /// List of kickTimeouts
         /// </summary>
-        public List<KickTimeout> kickTimeout { get; set; }
+        public List<KickTimeout> kickTimeouts { get; set; }
 
         /// <summary>
         /// AdvancedOptions
         /// Available since Arma 3 v2.02
         /// </summary>
         public AdvancedOptions advancedOptions { get; set; }
-
+         
         /// <summary>
-        /// Server Difficulty Settings
-        /// </summary>
-        public DifficultySetting difficultySetting { get; set; }
-
-        /// <summary>
-        /// Converts Message of the day to user friendly string
-        /// </summary>
-        /// <param name="Motd"></param>
-        /// <returns>string</returns>
-        private string GetMotd(List<string> Motd)
-        {
-            var motd = "";
-            for (var i = 0; i < Motd.Count; i++)
-            {
-                motd += Helpers.NewTab() + "\"" + Motd[i] + "\"";
-                motd += i < Motd.Count - 1 ? "," + Helpers.NewLine() : Helpers.NewLine();
-            }
-            return motd;
-        }
-        
-        /// <summary>
-        /// Gets Mission PBO(s) & Converts to user friendly string
+        /// Gets Mission PBO(s) And Converts to user friendly string
         /// </summary>
         /// <param name="advancedOptions"></param>
         /// <returns>string</returns>
-        private string GetMissions()
+        private string AddMissions(List<PBOFile> Addons)
         {
-            var missionString = "";
             var index = 0;
+            var difficultyString = NewLine();
+            var missionString = "class Missions" + NewLine() + "{";
 
-            foreach (PBOFile pbo in DLL.ConfigValues.Pbos)
+            foreach (PBOFile pbo in Addons)
             {
                 if (pbo.ModType != PboModType.Mission) continue;//Not mission mod
                 if (!pbo.IsEnabled) continue;
-
+                if (index == 0) difficultyString = NewOption("forcedDifficulty", pbo.MissionDifficulty.ToString(), EscapeType.DoubleQuotationMark) + NewLine();
                 index++;
-                missionString +=
-                    Helpers.NewLine() + Helpers.NewTab() + "class Mission_" + index + Helpers.NewLine() +
-                    Helpers.NewTab() + "{" + Helpers.NewLine() +
-                    Helpers.NewTab(2) + "template = \"" + pbo.Name + "\";" +
-                    Helpers.NewLine() +
-                    Helpers.NewTab(2) + "difficulty = \"" + pbo.MissionDifficulty + "\";" +
-                    Helpers.NewLine() +
-                    Helpers.NewTab() + "};" + Helpers.NewLine();
 
-            }
-            return missionString;
+                missionString += NewLine() +
+                    NewTab(1) + "class Mission_" + index + NewLine() +
+                    NewTab(1) + "{" +
+                    NewTab(2) + NewOption("template", pbo.Name, EscapeType.DoubleQuotationMark) +
+                    NewTab(2) + NewOption("difficulty", pbo.MissionDifficulty.ToString(), EscapeType.DoubleQuotationMark) +
+                    NewTab(1) + "};" + NewLine();
+            };
+
+            return difficultyString + missionString + "};";
         }
-        
+
         /// <summary>
         /// Convert Config to user friendly string
         /// </summary>
         /// <returns>string</returns>
         public override string ToString()
         {
-            //Start cfg string
-            var configString = "";
 
-            configString +=
-                "hostName = \"" + hostName + "\";" + Helpers.NewLine() +
-                "password = \"" + password + "\";" + Helpers.NewLine() +
-                "passwordAdmin = \"" + passwordAdmin + "\";" + Helpers.NewLine() +
-                "serverCommandPassword = \"" + serverCommandPassword + "\";" + Helpers.NewLine() +
-                "logFile = \"" +logFile + ".log\";" + Helpers.NewLine(2) +
-                "motd[] = {" + Helpers.NewLine() + GetMotd(motd) + "};" + Helpers.NewLine() +
-                "motdInterval = " + motdInterval + ";" + Helpers.NewLine(2) +
-                "maxPlayers = " + maxPlayers + ";" + Helpers.NewLine() +
-                "kickduplicate = " + System.Convert.ToInt32(kickDuplicate) + ";" + Helpers.NewLine() +
-                "verifySignatures = " + verifySignatures + ";" + Helpers.NewLine() +
-                "allowedFilePatching = " + allowedFilePatching + ";" + Helpers.NewLine() +
-                "requiredSecureId = " + requiredSecureId + ";" + Helpers.NewLine();
+            //Section 1
+            var configString =
+                NewOption("hostName", hostName, EscapeType.DoubleQuotationMark) +
+                NewOption("password", password, EscapeType.DoubleQuotationMark) +
+                NewOption("passwordAdmin", passwordAdmin, EscapeType.DoubleQuotationMark) +
+                NewOption("serverCommandPassword", serverCommandPassword, EscapeType.DoubleQuotationMark) +
+                NewOption("logFile", (logFile + ".log"), EscapeType.DoubleQuotationMark) + NewLine() +
+                NewOption("motd[]", "{" + string.Join(",", motd) + "}") +
+                NewOption("motdInterval", motdInterval.ToString()) + NewLine(1) +
+                NewOption("maxPlayers", maxPlayers.ToString()) +
+                NewOption("kickduplicate", kickDuplicate.ToString()) +
+                NewOption("verifySignatures", verifySignatures.ToString()) +
+                NewOption("allowedFilePatching", allowedFilePatching.ToString()) +
+                NewOption("requiredSecureId", requiredSecureId.ToString());
+            if (upnp) configString += NewOption("upnp", "1");
+            if (loopback) configString += NewOption("loopback", "true");
+            if (requiredBuild > 0) configString += NewOption("requiredBuild", requiredBuild.ToString());
 
-            if (upnp) configString += "upnp = 1;" + Helpers.NewLine();
-            if (loopback) configString += "loopback = true;" + Helpers.NewLine();
-            if (requiredBuild > 0) configString += "requiredBuild = " + requiredBuild + ";" + Helpers.NewLine();
-      
 
+            //Section 2
+            configString += NewLine() +
+                NewOption("disableVoN", disableVoN.ToString()) +
+                NewOption("vonCodecQuality", vonCodecQuality.ToString()) +
+                NewOption("persistent", persistent.ToString()) +
+                NewOption("timeStampFormat", timeStampFormat) +
+                NewOption("BattlEye", BattlEye.ToString()) + NewLine() +
+                NewOption("voteMissionPlayers", voteMissionPlayers.ToString()) + 
+                NewOption("voteThreshold", (VotingEnabled ? voteThreshold : 1.5).ToString(CultureInfo.InvariantCulture)) +
+                NewOption("allowedVoteCmds[]", "{" + ((VotingCommands.Count > 0) ? string.Join(",", VotingCommands) : "") + "}");
+
+
+            //Section 3
+            configString += NewLine();
+            if (maxPingEnabled)                 configString += NewOption("maxPing", maxPing.ToString());
+            if (maxDesyncEnabled)               configString += NewOption("maxDesync", maxDesync.ToString());
+            if (maxPacketLossEnabled)           configString += NewOption("maxPacketloss", maxPacketLoss.ToString());
+            if (disconnectTimeoutEnabled)       configString += NewOption("disconnectTimeout", disconnectTimeout.ToString());
+            if (kickClientsOnSlowNetwork == 1)  configString += NewOption("kickClientsOnSlowNetwork", kickClientsOnSlowNetwork.ToString());
             if (HeadlessEnabled)
             {
-                configString += "headlessClients[]={" + string.Join(",", headlessIps) + "};" + Helpers.NewLine();
-                configString += "localClient[]={" + string.Join(",", localIps) + "};" + Helpers.NewLine(2);
+                //Section 3.5
+                configString += NewLine() +
+                    NewOption("battleyeLicense", "1") +
+                    NewOption("headlessClients[]", "{" + string.Join(",", headlessIps) + "}") +
+                    NewOption("localClient[]", "{" + string.Join(",", localIps) + "}");
             }
 
-            if (VotingEnabled)
-            {
-                //configString += Helpers.NewLine() + "allowedVoteCmds[] = { "+ string.Join(",", settings.allowedVoteCmds) +"};";
-            }
-            else
-            {
-                configString += Helpers.NewLine() + "allowedVoteCmds[] = {};";
-            }
 
-            double votingThreshold = VotingEnabled ? voteThreshold : 1.5;
+            //Section 4
+            configString += NewLine() +
+                NewOption("doubleIdDetected", doubleIdDetected, EscapeType.DoubleQuotationMark) +
+                NewOption("onUserConnected", onUserConnected, EscapeType.DoubleQuotationMark) +
+                NewOption("onUserDisconnected", onUserDisconnected, EscapeType.DoubleQuotationMark) +
+                NewOption("onHackedData", onHackedData, EscapeType.DoubleQuotationMark) +
+                NewOption("onDifferentData", onDifferentData, EscapeType.DoubleQuotationMark) +
+                NewOption("onUnsignedData", onUnsignedData, EscapeType.DoubleQuotationMark);
 
-            configString += Helpers.NewLine() +
-                            "voteMissionPlayers = " + voteMissionPlayers + ";" + Helpers.NewLine() +
-                            "voteThreshold = " + votingThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture) + ";" + Helpers.NewLine(2) +
-                            "disableVoN = " + System.Convert.ToInt32(disableVoN) + ";" + Helpers.NewLine() +
-                            "vonCodecQuality = " + vonCodecQuality + ";" + Helpers.NewLine() +
-                            "persistent = " + System.Convert.ToInt32(persistent) + ";" + Helpers.NewLine() +
-                            "timeStampFormat = \"" + timeStampFormat + "\";" + Helpers.NewLine() +
-                            "BattlEye = " + System.Convert.ToInt32(BattlEye) + ";" + Helpers.NewLine();
 
-            if (HeadlessEnabled) configString += "battleyeLicense = 1;" + Helpers.NewLine();
-            if (maxPingEnabled) configString += "maxPing = " + maxPing + ";" + Helpers.NewLine();
-            if (maxDesyncEnabled) configString += "maxDesync = " + maxDesync + ";" + Helpers.NewLine();
-            if (maxPacketLossEnabled) configString += "maxPacketloss = " + maxPacketLoss + ";" + Helpers.NewLine();
-            if (disconnectTimeoutEnabled) configString += "disconnectTimeout = " + disconnectTimeout + ";" + Helpers.NewLine();
-            if (kickClientsOnSlowNetwork == 1) configString += "kickClientsOnSlowNetwork = " + kickClientsOnSlowNetwork + ";" + Helpers.NewLine();
-       
+            //Section 5
+            configString += NewLine() + 
+                NewOption("kickTimeout[]", "{" + string.Join(",", kickTimeouts) + "}");
 
-            configString += Helpers.NewLine() + "doubleIdDetected = \"" + doubleIdDetected + "\";" + Helpers.NewLine() +
-                            "onUserConnected = \"" + onUserConnected + "\";" + Helpers.NewLine() +
-                            "onUserDisconnected = \"" + onUserDisconnected + "\";" + Helpers.NewLine() +
-                            "onHackedData = \"" +onHackedData + "\";" + Helpers.NewLine() +
-                            "onDifferentData = \"" + onDifferentData + "\";" + Helpers.NewLine() +
-                            "onUnsignedData = \"" + onUnsignedData + "\";" + Helpers.NewLine() +
-                            "regularCheck = \"" + regularCheck + "\";" + Helpers.NewLine(2) +
-                            "class AdvancedOptions" + Helpers.NewLine() + "{" + Helpers.NewLine() + advancedOptions.ToString() +  "};" + Helpers.NewLine(2) +
-                            "class Missions" + Helpers.NewLine() + "{" + Helpers.NewLine() + GetMissions() + Helpers.NewLine() + "};";
+
+            //Section 6
+            configString += NewLine() + advancedOptions.ToString();
+
+
+            //Section 7
+            configString += NewLine() + 
+                AddMissions(DLL.ConfigValues.Pbos);
 
 
             return configString;
         }
+
+        /// <summary>
+        /// Write Saved Server Config
+        /// </summary>
+        /// <param name="file"></param>
+        internal override void WriteFile(string file, string _ = null) => DLL.HelperFunctions.WriteFile(file, DLL.ConfigValues.serverSettings.ToString());
     }
 
     public class ServerSettingsDefault
@@ -526,6 +517,7 @@ namespace ArmaServerBackend
             drawingInMap = 0,
             voteMissionPlayers = 150,
             VotingEnabled = true,
+            VotingCommands = new List<string>(),
             voteThreshold = 0.99,
             disableVoN = 1,
             vonCodec = 1,
@@ -544,7 +536,7 @@ namespace ArmaServerBackend
             onUnsignedData = "kick (_this select 0)",
             onHackedData = "ban (_this select 0)",
             onDifferentData = "",
-            regularCheck = "",
+            //regularCheck = "", //DERECATED 
             allowedFilePatching = 1,
             filePatchingExceptions = new List<string>(),
             admins = new List<string>(),
@@ -575,56 +567,11 @@ namespace ArmaServerBackend
                     new ConfigSetting("ignoreMissionLoadErrors", false)
                 } 
             },
-            kickTimeout = new List<KickTimeout>() { 
-                new KickTimeout()
-                {
-                    type = KickID.manual,//manual kick (vote kick, admin kick, bruteforce detection etc.)
-                    time = -2// -1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
-                },
-                new KickTimeout()
-                {
-                    type = KickID.connectivity,//connectivity kick (ping, timeout, packetloss, desync)
-                    time = 0// -1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
-                },
-                new KickTimeout()
-                {
-                    type = KickID.BattlEye,//BattlEye kick
-                    time = 180// -1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
-                },
-                new KickTimeout()
-                {
-                    type = KickID.harmless,//harmless kick (wrong addons, steam timeout or checks, signatures, content etc.)
-                    time = 0// -1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
-                }
-            },
-            difficultySetting = new DifficultySetting() {
-                missionDifficulty = MissionDifficulty.custom,
-                SkillAI = 0.75m,
-                PrecisionAI = 0.55m,
-                AILevelPreset = 3,
-                DifficultyItems = new List<ConfigSetting>()
-                {
-                    new ConfigSetting("reducedDamage", 0),
-                    new ConfigSetting("groupIndicators", 1),
-                    new ConfigSetting("friendlyTags", 1),
-                    new ConfigSetting("enemyTags", 1),
-                    new ConfigSetting("detectedMines", 1),
-                    new ConfigSetting("commands", 1),
-                    new ConfigSetting("waypoints", 1),
-                    new ConfigSetting("weaponInfo", 1),
-                    new ConfigSetting("stanceIndicator", 1),
-                    new ConfigSetting("staminaBar", 1),
-                    new ConfigSetting("weaponCrosshair", 1),
-                    new ConfigSetting("visionAid", 1),
-                    new ConfigSetting("thirdPersonView", 1),
-                    new ConfigSetting("cameraShake", 1),
-                    new ConfigSetting("scoreTable", 1),
-                    new ConfigSetting("deathMessages", 1),
-                    new ConfigSetting("vonID", 1),
-                    new ConfigSetting("mapContent", 1),
-                    new ConfigSetting("autoReport", 1),
-                    new ConfigSetting("multipleSaves", 1)
-                }
+            kickTimeouts = new List<KickTimeout>() {
+                new KickTimeout(false, KickID.manual, -2),         //-1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
+                new KickTimeout(false, KickID.connectivity, 0),    //-1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
+                new KickTimeout(false, KickID.BattlEye, 180),      //-1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
+                new KickTimeout(false, KickID.harmless, 0)         //-1 = until missionEnd | -2 = until serverRestart | 0 & > = seconds
             }
         };
     }

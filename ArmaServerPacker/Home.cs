@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Threading;
 using System.Windows.Forms;
 using ArmaServerBackend;
 
@@ -13,18 +12,18 @@ namespace ArmaServerFrontend
     {
         private static Form thisForm;
         private bool preloaded = false;
-        private int lastSelectedPbo = 0;
-        private Dictionary<int, PBOFile> pboList = new Dictionary<int, PBOFile>();
 
         public Home() {
+            thisForm = this;
             InitializeComponent();
             PreLoadHomeTabWindow();
             PreLoadServerTabWindow();
             PreLoadServerTab2Window();
-            thisForm = this;
+            PreLoadToolsTabWindow();
             preloaded = true;
         }
-         
+
+        #region Home TAB
         ///////////////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Home TAB
@@ -46,8 +45,8 @@ namespace ArmaServerFrontend
             int pboListCount = 0;
             foreach (PBOFile pbo in DLL.ConfigValues.Pbos)
             {
-                NewPboTab(pbo);
-                if (pboListCount == 0) LoadPboContols(pbo);
+                AddPBOTabPage(pbo);
+                if (pboListCount == 0) LoadPBOTabPage(pbo);
                 pboListCount += 1;
             }
             PboFileBox.TabPages.Remove(PboStartTab);
@@ -118,33 +117,79 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         }
 
-        // PBO setup 
-        private void NewPboTab(PBOFile newPboValues)
+
+        // PBO setup
+        private int lastSelectedPbo = 0;//prevents page click updating pbo if already selected
+        private Dictionary<int, PBOFile> pboList = new Dictionary<int, PBOFile>();
+        private void AddPBOTabPage(PBOFile newPboValues)
         {
+            //NEW Return vals
             List<PBOFile> PboFilesUpdated = new List<PBOFile>();
-            int pboListCount = 0;
 
-            /*if (PboFileBox.TabCount > 4)
-            {
-                MessageBox.Show("5 PBO's Max");
-                return;
-            }*/
-
+            //Populate PboFilesUpdated with saved pbos
+            int indexOfTab = 0;
             foreach (KeyValuePair<int, PBOFile> pbo in pboList.ToList())
-            { 
-                pboListCount += 1;
+            {  
                 PboFilesUpdated.Add(pbo.Value);
+                indexOfTab++;
             }
-
+             
+            //Add New TAB
             TabPage NewPboTab = new TabPage(newPboValues.Name);//add tab
             PboFileBox.TabPages.Add(NewPboTab);//Add Tab Name 
-            PboFilesUpdated.Add(newPboValues);//add new list
-            pboList.Add(pboListCount, newPboValues);//add to dictonary
-            
+            PboFilesUpdated.Add(newPboValues);//add new too PboFilesUpdated list
+            pboList.Add(indexOfTab, newPboValues);//add to dictonary
+
+            //update config
             DLL.ConfigValues.Pbos = PboFilesUpdated;
             DLL.ConfigFunctions.Save();
         }
-        private void LoadPboContols(PBOFile pboValues)
+        private void RemovePBOTabPage(TabControl tabControl, int indexToRemove = 0)
+        {
+            //NEW Return vals
+            Dictionary<int, PBOFile> pboListUpdated = new Dictionary<int, PBOFile>();
+            List<PBOFile> PboFilesUpdated = new List<PBOFile>();
+
+            //checky fix to make it look like cleaner
+            var itemTooselectNext = (indexToRemove - 1);
+            if (itemTooselectNext < 0) itemTooselectNext = 0;
+
+            //Add old except remove index 
+            foreach (KeyValuePair<int, PBOFile> pbo in pboList.ToList()) if (indexToRemove != pbo.Key) PboFilesUpdated.Add(pboList[pbo.Key]);
+
+            //Clear all tabs and attempt to remove pbolist val
+            var tabPages = tabControl.TabPages;
+            var indexOfTab = 0;
+            foreach (TabPage _tabPage in tabPages)
+            {
+                pboList.Remove(indexOfTab);
+                //tabPages.RemoveAt(indexOfTab);
+                tabPages.Remove(_tabPage);
+                indexOfTab++;
+            }
+
+            //Add all tabs but removed back
+            var indexOfPbo = 0;
+            foreach (PBOFile pbo in PboFilesUpdated.ToList())
+            {
+                TabPage NewPboTab = new TabPage(pbo.Name);//add tab
+                PboFileBox.TabPages.Add(NewPboTab);//Add Tab Name 
+                PboFilesUpdated.Add(pbo);//add new list
+                pboListUpdated.Add(indexOfPbo, pbo);//add to new dictonary
+                indexOfPbo++;
+            }
+
+            //update dictonary
+            pboList = pboListUpdated;
+
+            //Select previous/ first tab
+            tabControl.SelectedTab = tabControl.TabPages[itemTooselectNext];
+
+            //update config
+            DLL.ConfigValues.Pbos = PboFilesUpdated;
+            DLL.ConfigFunctions.Save();
+        }
+        private void LoadPBOTabPage(PBOFile pboValues)
         {  
             ModTypeCombo.SelectedIndex = (int)Enum.ToObject(typeof(PboModType), pboValues.ModType);
             PboEnabledCheckBox.Checked = pboValues.IsEnabled;
@@ -167,7 +212,7 @@ namespace ArmaServerFrontend
             PboServerPathBox.Visible = (pboValues.ModType != PboModType.Mission);
             PboServerPathButton.Visible = (pboValues.ModType != PboModType.Mission);
         }
-        private void UpdatePbos()
+        private void OnPBOTabPageUpdated()
         {
             if (!preloaded) return;
             List<PBOFile> PboFilesUpdated = new List<PBOFile>();
@@ -188,7 +233,7 @@ namespace ArmaServerFrontend
                         GitUrl = GitUrlBox.Text,
                         GitToken = GitTokenBox.Text,
                         GitServer = (GitServer)Enum.ToObject(typeof(GitServer), GitTypeCombo.SelectedIndex),
-                        ServerPath = pboModType == PboModType.Mission  ? Path.Combine(DLL.ConfigValues.serverSettings.ServerDirectory, "mpmissions") : PboServerPathBox.Text,
+                        ServerPath = pboModType == PboModType.Mission ? Path.Combine(DLL.ConfigValues.serverSettings.ServerDirectory, "mpmissions") : PboServerPathBox.Text,
                         MissionDifficulty = (MissionDifficulty)Enum.ToObject(typeof(MissionDifficulty), MissionDifficultyComboBox.SelectedIndex),
                         SingleLineFunctions = OneLineButton.Checked,
                         RandomizeFunctions = RenameFuncsButton.Checked,
@@ -211,20 +256,14 @@ namespace ArmaServerFrontend
             DLL.ConfigValues.Pbos = PboFilesUpdated;
             DLL.ConfigFunctions.Save();
 
+            DifficultyItemsOptionEnabled.Enabled = (DLL.ConfigValues.serverProfile.missionDifficulty == MissionDifficulty.custom);
+            DifficultyItemsCombo.Enabled = (DLL.ConfigValues.serverProfile.missionDifficulty == MissionDifficulty.custom);
+            DifficultyDisplayBox.Text = DLL.ConfigValues.serverProfile.missionDifficulty.ToString();
         }
-        private void AddPboTabButton_Click(object sender, EventArgs e) => NewPboTab(new PboFilesDefault().Values(_IsEnabled:false));
-        private void RemovePboButton_Click(object sender, EventArgs e)
-        {
-            List<PBOFile> PboFilesUpdated = new List<PBOFile>();
 
-            foreach (KeyValuePair<int, PBOFile> pbo in pboList.ToList()) if (PboFileBox.SelectedIndex != pbo.Key) PboFilesUpdated.Add(pboList[pbo.Key]);
-     
-            pboList.Remove(PboFileBox.SelectedIndex);
-            PboFileBox.TabPages.Remove(PboFileBox.TabPages[PboFileBox.SelectedIndex]);
-
-            DLL.ConfigValues.Pbos = PboFilesUpdated;
-            DLL.ConfigFunctions.Save();
-        }
+        // PBO Controls
+        private void AddPboTabButton_Click(object sender, EventArgs e) => AddPBOTabPage(new PboFilesDefault().Values(_IsEnabled:false));
+        private void RemovePboButton_Click(object sender, EventArgs e) => RemovePBOTabPage(PboFileBox, PboFileBox.SelectedIndex);
         private void PboFileBox_Click(object sender, EventArgs e)
         {
             if (!preloaded) return;
@@ -235,25 +274,26 @@ namespace ArmaServerFrontend
             {
                 if (lastSelectedPbo == pbo.Key)
                 {
-                    LoadPboContols(pbo.Value);
+                    LoadPBOTabPage(pbo.Value);
                     return;
                 }
             }
         }
-        private void PboEnabledCheckBox_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
-        private void ModTypeCombo_SelectedValueChanged(object sender, EventArgs e) => UpdatePbos(); 
-        private void MissionDifficultyComboBox_SelectedValueChanged(object sender, EventArgs e) => UpdatePbos();
-        private void PboNameBox_TextChanged(object sender, EventArgs e) => UpdatePbos();
-        private void GitPathBox_TextChanged(object sender, EventArgs e) => UpdatePbos();
+        private void PboEnabledCheckBox_CheckedChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void ModTypeCombo_SelectedValueChanged(object sender, EventArgs e) => OnPBOTabPageUpdated(); 
+        private void MissionDifficultyComboBox_SelectedValueChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void PboNameBox_TextChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void GitPathBox_TextChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
         private void PboServerPathButton_Click(object sender, EventArgs e) => PboServerPathBox.Text = DLL.HelperFunctions.GetFolderPathDialog();
-        private void PboServerPathBox_TextChanged(object sender, EventArgs e) => UpdatePbos();
-        private void GitUrlBox_TextChanged(object sender, EventArgs e) => UpdatePbos();
-        private void GitTokenBox_TextChanged(object sender, EventArgs e) => UpdatePbos();
-        private void GitTypeCombo_SelectedValueChanged(object sender, EventArgs e) => UpdatePbos();
-        private void OneLineButton_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
-        private void RenameFuncsButton_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
-        private void RenameGlobalVarsButton_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
-        private void RenameLocalVarsButton_CheckedChanged(object sender, EventArgs e) => UpdatePbos();
+        private void PboServerPathBox_TextChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void GitUrlBox_TextChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void GitTokenBox_TextChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void GitTypeCombo_SelectedValueChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void OneLineButton_CheckedChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void RenameFuncsButton_CheckedChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void RenameGlobalVarsButton_CheckedChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+        private void RenameLocalVarsButton_CheckedChanged(object sender, EventArgs e) => OnPBOTabPageUpdated();
+
 
         // Launch
         private void PullOnStartButton_CheckedChanged(object sender, EventArgs e)
@@ -272,7 +312,9 @@ namespace ArmaServerFrontend
                 LaunchButton
             );
         }
-        
+        #endregion
+
+        #region Server TAB
         ///////////////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Server TAB
@@ -345,9 +387,7 @@ namespace ArmaServerFrontend
             OnHackedDataBox.Text = DLL.ConfigValues.serverSettings.onHackedData;
             OnDifferentDataBox.Text = DLL.ConfigValues.serverSettings.onDifferentData;
             DoubleIdDetectedBox.Text = DLL.ConfigValues.serverSettings.doubleIdDetected;
-            RegularCheckBox.Text = DLL.ConfigValues.serverSettings.regularCheck;
             var SavedSteamIDS = DLL.ConfigValues.serverSettings.admins;
-
                  
             foreach (var localSteamID in DLL.HelperFunctions.GetLocalSteamIDS())
             {
@@ -358,7 +398,6 @@ namespace ArmaServerFrontend
                 } 
             }
             DLL.ConfigValues.serverSettings.admins = SavedSteamIDS;
-
 
             DLL.HelperFunctions.AddListBoxValue(AdminsBox, DLL.ConfigValues.serverSettings.admins);
             UpnpCheckbox.Checked = DLL.ConfigValues.serverSettings.upnp;
@@ -373,6 +412,7 @@ namespace ArmaServerFrontend
                 LanguageComboBox.Items.Add(DLL.HelperFunctions.Capitalize(Enum.GetName(typeof(Language), language)));
             }
             LanguageComboBox.SelectedIndex = (int)Enum.ToObject(typeof(Language), DLL.ConfigValues.BasicSetting.language);
+            AllowFilePatchingCheckBox.Checked = (DLL.ConfigValues.serverSettings.allowedFilePatching == 1);
 
             //Update if needed
             if (updateConfig) DLL.ConfigFunctions.Save();
@@ -980,13 +1020,7 @@ namespace ArmaServerFrontend
             DLL.ConfigValues.serverSettings.doubleIdDetected = DoubleIdDetectedBox.Text;
             DLL.ConfigFunctions.Save();
         }
-        private void RegularCheckBox_TextChanged(object sender, EventArgs e)
-        {
-            if (!preloaded) return;
-            DLL.ConfigValues.serverSettings.regularCheck = RegularCheckBox.Text;
-            DLL.ConfigFunctions.Save();
-        }
-         
+
         //Admins
         private void AdminsAddButton_Click(object sender, EventArgs e)
         {
@@ -1127,33 +1161,113 @@ namespace ArmaServerFrontend
             DLL.ConfigFunctions.Save();
         }
 
+        //FilePatching
+        private void AllowFilePatchingCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            FilePatchingExceptionsBox.Enabled = AllowFilePatchingCheckBox.Checked;
+            FilePatchingExceptionsAddBox.Enabled = AllowFilePatchingCheckBox.Checked;
+            FilePatchingExceptionsAddButton.Enabled = AllowFilePatchingCheckBox.Checked;
+            FilePatchingExceptionsRemoveButton.Enabled = AllowFilePatchingCheckBox.Checked;
+            DLL.ConfigValues.serverSettings.allowedFilePatching = (AllowFilePatchingCheckBox.Checked ? 1 : 0);
+            DLL.ConfigFunctions.Save();
+        }
+        #endregion
 
+        #region Server TAB2
         ///////////////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Server TAB
+        /// Server TAB2
         /// </summary> 
         ///////////////////////////////////////////////////////////////////////////////////////////////
         private void PreLoadServerTab2Window()
         {
             bool updateConfig = false; 
-            AllowFilePatchingCheckBox.Checked = (DLL.ConfigValues.serverSettings.allowedFilePatching == 1);
+             
+            //filePatching Exceptions
+            FilePatchingExceptionsBox.Enabled = AllowFilePatchingCheckBox.Checked;
+            FilePatchingExceptionsAddBox.Enabled = AllowFilePatchingCheckBox.Checked;
+            FilePatchingExceptionsAddButton.Enabled = AllowFilePatchingCheckBox.Checked;
+            FilePatchingExceptionsRemoveButton.Enabled = AllowFilePatchingCheckBox.Checked;
+            var SavedSteamIDS = DLL.ConfigValues.serverSettings.filePatchingExceptions;
+            foreach (var localSteamID in DLL.HelperFunctions.GetLocalSteamIDS())
+            {
+                if (SavedSteamIDS.Contains(localSteamID)) continue;
+                SavedSteamIDS.Add(localSteamID);
+                updateConfig = true;
+            }
+            DLL.ConfigValues.serverSettings.filePatchingExceptions = SavedSteamIDS;
             DLL.HelperFunctions.AddListBoxValue(FilePatchingExceptionsBox, DLL.ConfigValues.serverSettings.filePatchingExceptions);
-        
+
+            //allowed load crap
+            DLL.HelperFunctions.AddListBoxValue(allowedLoadFileExtensionsBox, DLL.ConfigValues.serverSettings.allowedLoadFileExtensions);
+            DLL.HelperFunctions.AddListBoxValue(allowedHTMLLoadURIsBox, DLL.ConfigValues.serverSettings.allowedHTMLLoadURIs);
+            DLL.HelperFunctions.AddListBoxValue(allowedPreprocessFileExtensionsBox, DLL.ConfigValues.serverSettings.allowedPreprocessFileExtensions);
+
+            KickTimeoutBoxLoad();
+
+            // AdvancedOptions
+            foreach (var config in DLL.ConfigValues.serverSettings.advancedOptions.configs) AdvancedOptionsComboBox.Items.Add(config.Name);
+            AdvancedOptionsComboBox.SelectedIndex = 0;
+            AdvancedOptionsEnabled.Checked = (bool)DLL.ConfigValues.serverSettings.advancedOptions.configs[AdvancedOptionsComboBox.SelectedIndex].Value;
+
+            //Profile DifficultyItems
+            foreach (var item in DLL.ConfigValues.serverProfile.DifficultyItems) DifficultyItemsCombo.Items.Add(DLL.HelperFunctions.Capitalize(item.Name));
+            DifficultyItemsCombo.SelectedIndex = 0;
+            DifficultyItemsOptionEnabled.Checked = DLL.ConfigValues.serverProfile.DifficultyItems[DifficultyItemsCombo.SelectedIndex].Value.ToString() == "1";
+            DifficultyItemsOptionEnabled.Enabled = (DLL.ConfigValues.serverProfile.missionDifficulty == MissionDifficulty.custom);
+            DifficultyItemsCombo.Enabled = (DLL.ConfigValues.serverProfile.missionDifficulty == MissionDifficulty.custom);
+            DifficultyDisplayBox.Text = DLL.ConfigValues.serverProfile.missionDifficulty.ToString();
 
             //Update if needed
             if (updateConfig) DLL.ConfigFunctions.Save();
         }
 
-
-        //FilePatching
-        private void AllowFilePatchingCheckBox_CheckedChanged(object sender, EventArgs e)
+        //Kickbox... (has issue when disabled: adds value to next tab)
+        private int lastSelectedKickbox = 0;//prevents page click updating pbo if already selected
+        private void KickTimeoutBoxLoad()
+        {
+            kickTimeoutEnabled.Checked = DLL.ConfigValues.serverSettings.kickTimeouts[kickTimeoutTabs.SelectedIndex].enabled;
+            kickTimeoutBox.Enabled = DLL.ConfigValues.serverSettings.kickTimeouts[kickTimeoutTabs.SelectedIndex].enabled;
+            kickTimeoutBox.Text = DLL.ConfigValues.serverSettings.kickTimeouts[kickTimeoutTabs.SelectedIndex].time.ToString();
+        }
+        private void OnKickTimeoutBoxUpdated()
         {
             if (!preloaded) return;
-            DLL.ConfigValues.serverSettings.allowedFilePatching = (AllowFilePatchingCheckBox.Checked ? 1 : 0);
+            kickTimeoutBox.Enabled = kickTimeoutEnabled.Checked;
+            if (kickTimeoutBox.Text == "") kickTimeoutBox.Text = "-1";
+            DLL.ConfigValues.serverSettings.kickTimeouts[kickTimeoutTabs.SelectedIndex].enabled = kickTimeoutEnabled.Checked;
+            DLL.ConfigValues.serverSettings.kickTimeouts[kickTimeoutTabs.SelectedIndex].time = int.Parse(kickTimeoutBox.Text, new NumberFormatInfo() { NegativeSign = "−" });
             DLL.ConfigFunctions.Save();
         }
+        private void kickTimeoutEnabled_CheckedChanged(object sender, EventArgs e) => OnKickTimeoutBoxUpdated();
+        private void kickTimeoutBox_TextChanged(object sender, EventArgs e) { }
+        private void kickTimeoutBox_Validated(object sender, EventArgs e) => OnKickTimeoutBoxUpdated();
+        private void kickTimeoutTabs_Click(object sender, EventArgs e)
+        {
+            if (lastSelectedKickbox == kickTimeoutTabs.SelectedIndex) return;
+            lastSelectedKickbox = kickTimeoutTabs.SelectedIndex;
+            KickTimeoutBoxLoad();
+        }
+
+        //Advanced Options
+        private void AdvancedOptionsComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            AdvancedOptionsEnabled.Checked = (bool)DLL.ConfigValues.serverSettings.advancedOptions.configs[AdvancedOptionsComboBox.SelectedIndex].Value;
+        }
+        private void AdvancedOptionsEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.advancedOptions.configs = DLL.ConfigFunctions.ModifyConfigSetting(DLL.ConfigValues.serverSettings.advancedOptions.configs, AdvancedOptionsComboBox.SelectedIndex, AdvancedOptionsEnabled.Checked);
+            DLL.ConfigFunctions.Save();
+        }
+
+
+        //FilePatching
         private void FilePatchingExceptionsAddButton_Click(object sender, EventArgs e)
         {
+            if (!preloaded) return;
             if (FilePatchingExceptionsAddBox.Text == "") return;
 
             //Has char in string
@@ -1186,46 +1300,135 @@ namespace ArmaServerFrontend
         }
         private void FilePatchingExceptionsRemoveButton_Click(object sender, EventArgs e)
         {
+            if (!preloaded) return;
             DLL.ConfigValues.serverSettings.filePatchingExceptions = DLL.HelperFunctions.RemoveListBoxValue(FilePatchingExceptionsBox);
             DLL.ConfigFunctions.Save();
         }
 
-        
+        //LoadFile Extensions
+        private void allowedLoadFileExtensionsAddButton_Click(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            if (allowedLoadFileExtensionsAddBox.Text == "") return;
+
+            //Has number in string
+            if (DLL.HelperFunctions.StringContainsNumber(allowedLoadFileExtensionsAddBox.Text))
+            {
+                allowedLoadFileExtensionsAddBox.Text = "";
+                MessageBox.Show("Enter a name containing only letters!");
+                return;
+            }
+
+            //Duplicate entry
+            if (DLL.HelperFunctions.AlreadyInBox(allowedLoadFileExtensionsBox, allowedLoadFileExtensionsAddBox))
+            {
+                allowedLoadFileExtensionsAddBox.Text = "";
+                MessageBox.Show("Value Already Listed!");
+                return;
+            }
+
+            //update config
+            DLL.ConfigValues.serverSettings.allowedLoadFileExtensions = DLL.HelperFunctions.AddListBoxValue(allowedLoadFileExtensionsBox, allowedLoadFileExtensionsAddBox);
+            DLL.ConfigFunctions.Save(); 
+        }
+
+        private void allowedLoadFileExtensionsRemoveButton_Click(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.allowedLoadFileExtensions = DLL.HelperFunctions.RemoveListBoxValue(allowedLoadFileExtensionsBox);
+            DLL.ConfigFunctions.Save();
+        }
+
+        //PreprocessFile Extensions
+        private void allowedPreprocessFileExtensionsAddButton_Click(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            if (allowedPreprocessFileExtensionsAddBox.Text == "") return;
+
+            //Has number in string
+            if (DLL.HelperFunctions.StringContainsNumber(allowedPreprocessFileExtensionsAddBox.Text))
+            {
+                allowedPreprocessFileExtensionsAddBox.Text = "";
+                MessageBox.Show("Enter a name containing only letters!");
+                return;
+            }
+
+            //Duplicate entry
+            if (DLL.HelperFunctions.AlreadyInBox(allowedPreprocessFileExtensionsBox, allowedPreprocessFileExtensionsAddBox))
+            {
+                allowedPreprocessFileExtensionsAddBox.Text = "";
+                MessageBox.Show("Value Already Listed!");
+                return;
+            }
+
+            //update config
+            DLL.ConfigValues.serverSettings.allowedPreprocessFileExtensions = DLL.HelperFunctions.AddListBoxValue(allowedPreprocessFileExtensionsBox, allowedPreprocessFileExtensionsAddBox);
+            DLL.ConfigFunctions.Save();
+        }
+        private void allowedPreprocessFileExtensionsRemoveButton_Click(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.allowedPreprocessFileExtensions = DLL.HelperFunctions.RemoveListBoxValue(allowedPreprocessFileExtensionsBox);
+            DLL.ConfigFunctions.Save();
+        }
+
+        //HTML LoadURIs
+        private void allowedHTMLLoadURIsAddButton_Click(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            if (allowedHTMLLoadURIsAddBox.Text == "") return;
+
+            //Duplicate entry
+            if (DLL.HelperFunctions.AlreadyInBox(allowedHTMLLoadURIsBox, allowedHTMLLoadURIsAddBox))
+            {
+                allowedHTMLLoadURIsAddBox.Text = "";
+                MessageBox.Show("Value Already Listed!");
+                return;
+            }
+
+            //update config
+            DLL.ConfigValues.serverSettings.allowedHTMLLoadURIs = DLL.HelperFunctions.AddListBoxValue(allowedHTMLLoadURIsBox, allowedHTMLLoadURIsAddBox);
+            DLL.ConfigFunctions.Save();
+        } 
+        private void allowedHTMLLoadURIsRemoveButton_Click(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverSettings.allowedHTMLLoadURIs = DLL.HelperFunctions.RemoveListBoxValue(allowedHTMLLoadURIsBox);
+            DLL.ConfigFunctions.Save();
+        }
+         
+        //Profile options  
+        private void DifficultyItemsCombo_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DifficultyItemsOptionEnabled.Checked = (DLL.ConfigValues.serverProfile.DifficultyItems[DifficultyItemsCombo.SelectedIndex].Value.ToString() == "1");
+        }
+        private void DifficultyItemsOptionEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!preloaded) return;
+            DLL.ConfigValues.serverProfile.DifficultyItems = DLL.ConfigFunctions.ModifyConfigSetting(DLL.ConfigValues.serverProfile.DifficultyItems, DifficultyItemsCombo.SelectedIndex, DifficultyItemsOptionEnabled.Checked ? 1 : 0);
+            DLL.ConfigFunctions.Save();
+        }
+
+        #endregion
+
+        #region Tools TAB
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Tools TAB
+        /// </summary> 
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        private void PreLoadToolsTabWindow()
+        {
+            bool updateConfig = false;
 
 
+            //Update if needed
+            if (updateConfig) DLL.ConfigFunctions.Save();
+        }
 
+        #endregion
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //
-
+       
     }
 }

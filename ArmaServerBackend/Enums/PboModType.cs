@@ -2,8 +2,19 @@
 {
     public enum PboModType
     {
-        Mission = 0,
-        ClientMod = 1,
-        ServerMod = 2
+        /// <summary>
+        /// Arma MissionFile
+        /// </summary>
+        Mission,
+
+        /// <summary>
+        /// Arma ClientModFile
+        /// </summary>
+        ClientMod,
+
+        /// <summary>
+        /// Arma ServerModFile
+        /// </summary>
+        ServerMod
     }
 }

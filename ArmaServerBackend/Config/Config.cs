@@ -73,47 +73,6 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
-        /// Write Json Config As String
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="basicSetting"></param>
-        public void WriteBasicConfigFile(string file, ServerBasicSettings basicSetting) => File.WriteAllText(file, basicSetting.ToString());
-        public void WriteServerConfigFile(string file, ServerSettings serverSettings) => File.WriteAllText(file, serverSettings.ToString());
-        private void WriteServerProfileFile(string file, DifficultySetting difficultySetting) => File.WriteAllText(file, difficultySetting.ToString());
-
-        /// <summary>
-        /// Creates .cfg from .json values
-        /// </summary>
-        /// <param name="settings"></param>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public bool CreateA3ConfigFile(Settings settings, int config = 0)
-        {
-            if (config != 0 && config != 1) return false;
-            var path = Path.Combine(settings.serverSettings.ServerDirectory, "A3Config");
-            var file = Path.Combine(path, (config == 0) ? "ArmaBasic.cfg" : "ArmaServer.cfg");
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            if(config == 0) WriteBasicConfigFile(file, settings.BasicSetting); else WriteServerConfigFile(file, settings.serverSettings);
-            Thread.Sleep(2000);
-            return File.Exists(file);
-        }
-
-        /// <summary>
-        /// Creates .Arma3Profile from .json values
-        /// </summary>
-        /// <param name="settings"></param>
-        /// <returns></returns>
-        public bool CreateA3ProfileFile(Settings settings)
-        {
-            var path = Path.Combine(settings.serverSettings.ServerDirectory, "A3Config", "Users", "Server"); 
-            var file = Path.Combine(path, "Server.Arma3Profile");
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            WriteServerProfileFile(file, settings.serverSettings.difficultySetting);
-            Thread.Sleep(2000);
-            return File.Exists(file);
-        }
-
-        /// <summary>
         /// Get Index of configList from given configName
         /// </summary>
         /// <param name="configSettings">list of configs</param>

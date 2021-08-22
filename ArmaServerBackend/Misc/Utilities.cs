@@ -1,4 +1,7 @@
-﻿using System;
+﻿using BisDll.Model;
+using BisDll.Model.MLOD;
+using BisDll.Model.ODOL;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -16,6 +19,8 @@ namespace ArmaServerBackend
     public class Utilities
     {   //TODO: Revise this class at somepoint got a litle messy getting it working
 
+
+        #region Start ARMA Functions
         /// <summary>
         /// Current ProcessID of running arma3server
         /// </summary>
@@ -44,19 +49,28 @@ namespace ArmaServerBackend
         /// <returns>true/false</returns>
         private bool PullAndRandomize(Form form, ProgressBar progressBar)
         {
+            string message;
             progressBar.Value = 0;//0% 
-
+            
             //purge directory if exists and create new
             try
             {
+                message = "Purging local git directory";
+                Trace.WriteLine(message + " | DIR: [" + DLL.ConfigValues.GitDirectory + "]");
+                form.Text = $"{title} | {message}";
+
+                progressBar.Value += 5;//5% 
                 if (Directory.Exists(DLL.ConfigValues.GitDirectory)) Helpers.DeleteDirectory(DLL.ConfigValues.GitDirectory);
+                progressBar.Value += 5;//10% 
                 Directory.CreateDirectory(DLL.ConfigValues.GitDirectory);
-                form.Text = $"{title} | Purging local git directory";
-                progressBar.Value += 10;//10% 
+
+
             }
             catch (IOException ex)
-            { 
-                MessageBox.Show("Invalid git directory provided | Extecption:  " + ex);
+            {
+                message = "Invalid git directory provided | Extecption:  ";
+                Trace.WriteLine(message + ex.InnerException);
+                MessageBox.Show(message + ex);
                 return false;
             };
 
@@ -180,14 +194,13 @@ namespace ArmaServerBackend
             if (IsFirstRun) 
             {
                 IsFirstRun = false;
-                foreach (int index in new List<int> { 0, 1 })
-                {
-                    form.Text = $"{title} | Creating {(index == 0 ? "Basic" : "Server")} Config";
-                    DLL.ConfigFunctions.CreateA3ConfigFile(DLL.ConfigValues, index);
-                };
-                form.Text = $"{title} | Creating A3 Profile";
-                DLL.ConfigFunctions.CreateA3ProfileFile(DLL.ConfigValues);
+
+                //Write Profile and configs
+                string A3ConfigPath = DLL.ConfigValues.serverSettings.ServerDirectory;
+                form.Text = $"{title} | Creating Profile/Configs";
+                DLL.ConfigValues.WriteFile(A3ConfigPath);
                 Thread.Sleep(5000);//Timeout
+                form.Text = title;
 
                 //Update local with git
                 if (gitPull) 
@@ -244,7 +257,10 @@ namespace ArmaServerBackend
             //Update Vars
             ArmaProcessID = serverProcess.Id;
             textBox.Text = ArmaProcessID.ToString();
-
+             
+            Thread.Sleep(2000);//Timeout
+            clearArmaCrap()
+;            
             //Return ProcessID
             return ArmaProcessID;
         }
@@ -286,7 +302,7 @@ namespace ArmaServerBackend
                         if (!DLL.HelperFunctions.IsProcessRunning(ArmaProcessID) && IsArmaMonitored) form.Invoke(new Action(() =>
                         {
                             ArmaProcessID = Run(textBox, form, progressBar, gitPull, button);//Are we meant to be alive but ain't?
-                        })); 
+                        }));
                     }
                 }).Start();//loop has be in a new thread or will hang application at loop
                 #endregion
@@ -315,7 +331,7 @@ namespace ArmaServerBackend
         /// Stops arma3server and resets vars
         /// </summary>
         /// <returns>int ArmaProcessID</returns>
-        private int Die()
+        internal int Die()
         { 
             try
             {
@@ -336,6 +352,15 @@ namespace ArmaServerBackend
         }
 
         /// <summary>
+        /// Arma creates profile folder next to our exe every launch.... horrible fix for horrible arma code....
+        /// </summary>
+        internal void clearArmaCrap()
+        { 
+            string fuckingAmra = Path.Combine(Environment.CurrentDirectory, "A3Config");
+            if (Directory.Exists(fuckingAmra)) Directory.Delete(Path.Combine(Environment.CurrentDirectory, "A3Config"));
+        }
+
+        /// <summary>
         /// Start/Stop arma3server instance
         /// </summary>
         /// <param name="textBox">textBox too witch ArmaProcessID will be displayed in</param>
@@ -347,9 +372,6 @@ namespace ArmaServerBackend
         /// <returns>string ArmaProcessID</returns>
         public string SwitchOnlineState(TextBox textBox, bool runOnce, Form form, ProgressBar progressBar, bool gitPull, Button button)//Handles Online State. Returns: given int as string
         {
-            //isOnline = isOnline ? false : true;
-            //ArmaProcessID = isOnline ? MonitorArma(textBox, runOnce, form, progressBar, gitPull, button) : Die(textBox);
-            //button.Text = isOnline ? "Stop" : "Start";
             if (!isOnline)
             { 
                 button.Enabled = false;
@@ -364,5 +386,86 @@ namespace ArmaServerBackend
     
             return ArmaProcessID.ToString();
         }
+        #endregion
+
+        #region convertP3D Functions
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcPath"></param>
+        /// <param name="dstPath"></param>
+        /// <returns></returns>
+        private static bool ConvertP3dFile(string srcPath, string dstPath = null)
+        {
+            Trace.WriteLine(string.Format("Reading the p3d ('{0}')...", (object)srcPath));
+            P3D instance = P3D.GetInstance(srcPath);
+            
+            if (instance is MLOD)
+            {
+                Trace.WriteLine(string.Format("'{0}' is already in editable MLOD format", srcPath));
+                return false;
+            }
+     
+            ODOL odol = instance as ODOL;
+            if (!(instance is ODOL))
+            {
+                Trace.WriteLine(string.Format("'{0}' could not be loaded.", srcPath));
+                return false;
+            }
+            Trace.WriteLine("ODOL was loaded successfully.");
+
+            Trace.WriteLine("Start conversion...");
+            MLOD mlod = Conversion.ODOL2MLOD(odol);
+            Trace.WriteLine("Conversion successful.");
+
+            string file = Path.Combine(dstPath ?? Path.GetDirectoryName(srcPath), Path.GetFileNameWithoutExtension(srcPath) + ".p3d");
+           
+            Trace.WriteLine("Saving...");
+            mlod.writeToFile(file + ".deBin");
+
+            if (!File.Exists(file + ".deBin")) return false;
+            
+            Trace.WriteLine(string.Format("MLOD successfully saved to '{0}'", file));
+            File.Delete(file);
+            File.Move(file + ".deBin", file);
+            return File.Exists(file);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool ConvertP3D(string path) => (string.IsNullOrWhiteSpace(path)) ? false : ConvertP3dFile(path, null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static bool ConvertP3D() => ConvertP3D(DLL.HelperFunctions.GetP3DPathDialog());
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="files"></param>
+        /// <returns></returns>
+        public static bool ConvertP3D(List<string> files)
+        {
+            foreach (var file in files)
+            {  
+                if (string.IsNullOrWhiteSpace(file)) return false; 
+                if (!ConvertP3D(file)) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Converts all P3DS
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool ConvertALLP3D(PBOFile pbo) => ConvertP3D(Directory.EnumerateFiles(pbo.GitUrl, "*.p3d", SearchOption.AllDirectories).ToList());
+        #endregion
     }
+
 }

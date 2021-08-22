@@ -1,11 +1,12 @@
 ﻿using System.Globalization;
+using System.IO;
 
 namespace ArmaServerBackend
 {
     /// <summary>
     /// ServerBasic Settings
     /// </summary>
-    public class ServerBasicSettings
+    public class ServerBasicSettings : Helpers
     {
         /// <summary>
         /// Sets server language
@@ -133,28 +134,35 @@ namespace ArmaServerBackend
 
             basicConfig +=
                 "language=\"" + DLL.HelperFunctions.Capitalize(System.Enum.GetName(typeof(Language), language)) + "\";" + Helpers.NewLine() +
-                "MaxMsgSend = " + MaxMsgSend + ";" + Helpers.NewLine() +
-                "MaxSizeGuaranteed = " + MaxSizeGuaranteed + ";" + Helpers.NewLine() +
-                "MaxSizeNonguaranteed = " + MaxSizeNonguaranteed + ";" + Helpers.NewLine() +
-                "MinBandwidth = " + MinBandwidth + ";" + Helpers.NewLine() +
-                "MaxBandwidth = " + MaxBandwidth + ";" + Helpers.NewLine() +
+                "MaxMsgSend = " + MaxMsgSend + ";" + NewLine() +
+                "MaxSizeGuaranteed = " + MaxSizeGuaranteed + ";" + NewLine() +
+                "MaxSizeNonguaranteed = " + MaxSizeNonguaranteed + ";" + NewLine() +
+                "MinBandwidth = " + MinBandwidth + ";" + NewLine() +
+                "MaxBandwidth = " + MaxBandwidth + ";" + NewLine() +
                 "MinErrorToSend = " + MinErrorToSend.ToString(CultureInfo.InvariantCulture) + ";" +
-                Helpers.NewLine() +
+                NewLine() +
                 "MinErrorToSendNear = " + MinErrorToSendNear.ToString(CultureInfo.InvariantCulture) + ";" +
-                Helpers.NewLine() +
-                "MaxCustomFileSize = " + MaxCustomFileSize + ";" + Helpers.NewLine() +
-                "class sockets{maxPacketSize = " + MaxPacketSize + ";};" + Helpers.NewLine() +
-                "adapter=" + adapter + ";" + Helpers.NewLine() +
-                "3D_Performance=" + Performance_3D + ";" + Helpers.NewLine() +
-                "Resolution_W= " + Resolution_W + ";" + Helpers.NewLine() +
-                "Resolution_H=" + Resolution_H + ";" + Helpers.NewLine() +
-                "Resolution_Bpp=" + Resolution_Bpp + ";" + Helpers.NewLine() +
-                "terrainGrid=" + TerrainGrid.ToString(CultureInfo.InvariantCulture) + ";" + Helpers.NewLine() +
-                "viewDistance=" + ViewDistance + ";" + Helpers.NewLine() +
+                NewLine() +
+                "MaxCustomFileSize = " + MaxCustomFileSize + ";" + NewLine() +
+                "class sockets{maxPacketSize = " + MaxPacketSize + ";};" + NewLine() +
+                "adapter=" + adapter + ";" + NewLine() +
+                "3D_Performance=" + Performance_3D + ";" + NewLine() +
+                "Resolution_W= " + Resolution_W + ";" + NewLine() +
+                "Resolution_H=" + Resolution_H + ";" + NewLine() +
+                "Resolution_Bpp=" + Resolution_Bpp + ";" + NewLine() +
+                "terrainGrid=" + TerrainGrid.ToString(CultureInfo.InvariantCulture) + ";" + NewLine() +
+                "viewDistance=" + ViewDistance + ";" + NewLine() +
                 "Windowed=" + Windowed + ";";
 
             return basicConfig;
         }
+
+        /// <summary>
+        /// Write Saved Basic Config
+        /// </summary>
+        /// <param name="file"></param> 
+        internal override void WriteFile(string file, string _ = null) => DLL.HelperFunctions.WriteFile(file, DLL.ConfigValues.BasicSetting.ToString());
+
     }
 
     /// <summary>

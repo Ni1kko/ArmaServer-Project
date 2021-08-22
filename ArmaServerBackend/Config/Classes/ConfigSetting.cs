@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace ArmaServerBackend
+﻿namespace ArmaServerBackend
 {
     /// <summary>
     /// New config method
     /// </summary>
-    public class ConfigSetting
+    public class ConfigSetting : Helpers
     {
         public string Name { get; set; }
         public object? Value { get; set; }
@@ -25,6 +23,6 @@ namespace ArmaServerBackend
         /// Convent to user friendly string
         /// </summary>
         /// <returns></returns>
-        public override string ToString() => Name + "=" + Value + ";";
+        public override string ToString() => NewOption(Name, Value.ToString().ToLower());
     }
 }

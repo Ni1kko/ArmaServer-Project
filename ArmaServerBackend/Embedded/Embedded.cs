@@ -6,7 +6,13 @@ namespace ArmaServerBackend
     public class Embedded
     {
         public Assembly assembly = typeof(Embedded).Assembly;
-  
+
+        /// <summary>
+        /// Embedded Assembly Resolver Event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        /// <returns>Assembly</returns>
         public Assembly AssemblyResolver(object sender, ResolveEventArgs args)
         {
             var askedAssembly = new AssemblyName(args.Name);

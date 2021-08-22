@@ -3,7 +3,7 @@
     /// <summary>
     /// PBO Settings
     /// </summary>
-    public class PBOFile
+    public class PBOFile : Helpers
     {
         /// <summary>
         /// PBO type [mission, client, server]
